@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: ride-discovery-service
+
+server:
+  port: ${PORT:8082}
+
+clients:
+  booking-service-url: ${BOOKING_SERVICE_URL:http://localhost:8083}
+  review-service-url: ${REVIEW_SERVICE_URL:http://localhost:8084}
+  geolocation-service-url: ${GEOLOCATION_SERVICE_URL:http://localhost:8088}

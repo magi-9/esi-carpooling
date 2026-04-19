@@ -1,0 +1,55 @@
+package com.esi.ridediscovery.client;
+
+import com.esi.ridediscovery.client.dto.RideDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+
+import java.util.Collections;
+import java.util.List;
+
+@Component
+public class RideBookingClient {
+
+    private static final Logger log = LoggerFactory.getLogger(RideBookingClient.class);
+
+    private final RestClient restClient;
+
+    public RideBookingClient(
+            RestClient.Builder restClientBuilder,
+            @Value("${clients.booking-service-url}") String bookingServiceUrl) {
+        this.restClient = restClientBuilder.baseUrl(bookingServiceUrl).build();
+    }
+
+    public List<RideDto> searchRides(
+            String originLat,
+            String originLon,
+            String destLat,
+            String destLon,
+            String departureDate,
+            int seats,
+            String authHeader) {
+        try {
+            List<RideDto> rides = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/rides")
+                            .queryParam("originLat", originLat)
+                            .queryParam("originLon", originLon)
+                            .queryParam("destLat", destLat)
+                            .queryParam("destLon", destLon)
+                            .queryParam("departureDate", departureDate)
+                            .queryParam("seats", seats)
+                            .build())
+                    .header("Authorization", authHeader != null ? authHeader : "")
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<RideDto>>() {});
+            return rides != null ? rides : Collections.emptyList();
+        } catch (Exception e) {
+            log.warn("Failed to fetch rides from booking service: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+}

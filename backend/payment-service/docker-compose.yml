@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  payment-db:
+    image: postgres:16-alpine
+    container_name: esi-payment-db
+    environment:
+      POSTGRES_DB: paymentdb
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+    ports:
+      - "5433:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment -d paymentdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - esi-network
+    restart: unless-stopped
+
+  payment-service:
+    build: .
+    container_name: esi-payment-service
+    ports:
+      - "8081:8080"
+    environment:
+      - DB_URL=jdbc:postgresql://payment-db:5432/paymentdb
+      - DB_USERNAME=payment
+      - DB_PASSWORD=payment
+      - DB_DRIVER=org.postgresql.Driver
+      - JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - BOOKING_SERVICE_URL=${BOOKING_SERVICE_URL:-http://esi-booking-service:8080}
+      - PORT=8080
+    depends_on:
+      payment-db:
+        condition: service_healthy
+    networks:
+      - esi-network
+    restart: unless-stopped
+
+volumes:
+  payment_postgres_data:
+    driver: local

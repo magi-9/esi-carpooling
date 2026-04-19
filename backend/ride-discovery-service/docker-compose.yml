@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  ride-discovery-service:
+    build: .
+    container_name: esi-ride-discovery-service
+    ports:
+      - "8082:8080"
+    environment:
+      - PORT=8080
+      - BOOKING_SERVICE_URL=http://esi-booking-service:8080
+      - REVIEW_SERVICE_URL=http://esi-review-service:8080
+      - PROFILE_SERVICE_URL=http://esi-profile-service:8080
+    networks:
+      - esi-network
+    restart: unless-stopped

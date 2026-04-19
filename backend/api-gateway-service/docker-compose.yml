@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  api-gateway-service:
+    build: .
+    container_name: esi-api-gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - AUTH_SERVICE_URL=http://esi-authentication-service:8080
+      - PROFILE_SERVICE_URL=http://esi-profile-service:8080
+      - BOOKING_SERVICE_URL=http://esi-ride-booking-service:8080
+      - PAYMENT_SERVICE_URL=http://esi-payment-service:8080
+      - DISCOVERY_SERVICE_URL=http://esi-ride-discovery-service:8080
+      - REVIEW_SERVICE_URL=http://esi-review-service:8080
+      - GEOLOCATION_SERVICE_URL=http://esi-geolocation-service:8080
+      - VALIDATION_SERVICE_URL=http://esi-validation-service:8080
+    depends_on:
+      payment-service:
+        condition: service_started
+      ride-discovery-service:
+        condition: service_started
+    networks:
+      - esi-network
+    restart: unless-stopped

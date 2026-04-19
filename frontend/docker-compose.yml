@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: .
+    container_name: esi-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      payment-service:
+        condition: service_started
+      ride-discovery-service:
+        condition: service_started
+    networks:
+      - esi-network
+    restart: unless-stopped
+    environment:
+      - VITE_API_PAYMENT_URL=http://esi-payment-service:8080
+      - VITE_API_DISCOVERY_URL=http://esi-ride-discovery-service:8080

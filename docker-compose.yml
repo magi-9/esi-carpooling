@@ -2,6 +2,7 @@ version: "3.9"
 
 # Include individual service compose files
 include:
+  - backend/kafka/compose.yml
   - backend/api-gateway-service/docker-compose.yml
   - backend/payment-service/docker-compose.yml
   - backend/ride-discovery-service/docker-compose.yml

@@ -19,7 +19,7 @@ import de.calucon.esi.auth.event.UserRegisteredEvent;
 public class KafkaConfig {
 
     // Pulls the server address from your application.properties
-    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+    @Value("${spring.kafka.bootstrap-servers:kafka:9092}")
     private String bootstrapServers;
 
     @Bean
@@ -29,9 +29,9 @@ public class KafkaConfig {
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        
+
         // Prevent infinite blocking/retrying if Kafka is unreachable
-        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 2000); 
+        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 2000);
         configProps.put(ProducerConfig.RETRIES_CONFIG, 0);
 
         return new DefaultKafkaProducerFactory<>(configProps);

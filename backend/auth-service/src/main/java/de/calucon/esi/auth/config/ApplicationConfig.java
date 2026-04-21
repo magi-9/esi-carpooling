@@ -31,9 +31,10 @@ public class ApplicationConfig {
     // passwords
     @Bean
     AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService());
+        provider.setPasswordEncoder(passwordEncoder());
+        provider.setHideUserNotFoundExceptions(false);
+        return provider;
     }
 
     // 3. The manager that handles the actual authentication process

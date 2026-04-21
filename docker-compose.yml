@@ -5,6 +5,7 @@ include:
   - backend/api-gateway-service/docker-compose.yml
   - backend/payment-service/docker-compose.yml
   - backend/ride-discovery-service/docker-compose.yml
+  - backend/auth-service/compose.yaml
   - frontend/docker-compose.yml
 
 # Shared network for all services

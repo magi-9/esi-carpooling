@@ -14,6 +14,21 @@
       "name": "spring.kafka.bootstrap-servers",
       "type": "java.lang.String",
       "description": "Comma separated list of Kafka Servers (host:port)"
+    },
+    {
+      "name": "spring.kafka.admin.fail-fast",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.kafka.admin.fail-fast'"
+    },
+    {
+      "name": "spring.kafka.admin.properties.request.timeout.ms",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.kafka.admin.properties.request.timeout.ms'"
+    },
+    {
+      "name": "spring.kafka.admin.properties.default.api.timeout.ms",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.kafka.admin.properties.default.api.timeout.ms'"
     }
   ]
 }

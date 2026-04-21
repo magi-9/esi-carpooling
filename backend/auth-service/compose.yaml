@@ -22,8 +22,6 @@ services:
     container_name: esi-auth-service
     ports:
       - "8086:8086"
-    env_file:
-      - .env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-db:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=${AUTH_DB_USER}

@@ -6,9 +6,12 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -20,9 +23,41 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(ProfileNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleProfileNotFound(ProfileNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateProfileException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateProfile(DuplicateProfileException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Invalid value '%s' for parameter '%s'", ex.getValue(), ex.getName());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingHeader(MissingRequestHeaderException ex) {
+        String message = String.format("Required header '%s' is missing", ex.getHeaderName());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Malformed request body");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -14,9 +14,10 @@ import de.calucon.profile.dto.UserProfileResponse;
 import de.calucon.profile.dto.VehicleResponse;
 import de.calucon.profile.entity.UserProfile;
 import de.calucon.profile.entity.Vehicle;
+import de.calucon.profile.exception.DuplicateProfileException;
+import de.calucon.profile.exception.ProfileNotFoundException;
 import de.calucon.profile.repository.UserProfileRepository;
 import de.calucon.profile.repository.VehicleRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,7 +30,7 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse createProfile(UUID userId, CreateProfileRequest request) {
         if (userProfileRepository.existsById(userId)) {
-            throw new IllegalArgumentException("Profile already exists for user: " + userId);
+            throw new DuplicateProfileException(userId);
         }
 
         UserProfile profile = UserProfile.builder()
@@ -47,14 +48,14 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public UserProfileResponse getProfile(UUID userId) {
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user: " + userId));
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
         return UserProfileResponse.fromEntity(profile);
     }
 
     @Transactional
     public UserProfileResponse updateProfile(UUID userId, UpdateProfileRequest request) {
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user: " + userId));
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
 
         if (request.getFirstName() != null) {
             profile.setFirstName(request.getFirstName());
@@ -73,7 +74,7 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public List<VehicleResponse> getVehicles(UUID userId) {
         if (!userProfileRepository.existsById(userId)) {
-            throw new EntityNotFoundException("Profile not found for user: " + userId);
+            throw new ProfileNotFoundException(userId);
         }
         return vehicleRepository.findByUserProfileUserId(userId).stream()
                 .map(VehicleResponse::fromEntity)
@@ -83,7 +84,7 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public List<VehicleResponse> getVerifiedVehicles(UUID userId) {
         if (!userProfileRepository.existsById(userId)) {
-            throw new EntityNotFoundException("Profile not found for user: " + userId);
+            throw new ProfileNotFoundException(userId);
         }
         return vehicleRepository.findVerifiedVehiclesByUserId(userId).stream()
                 .map(VehicleResponse::fromEntity)
@@ -93,7 +94,7 @@ public class ProfileService {
     @Transactional
     public VehicleResponse addVehicle(UUID userId, CreateVehicleRequest request) {
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user: " + userId));
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
 
         Vehicle vehicle = Vehicle.builder()
                 .userProfile(profile)
@@ -110,7 +111,7 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse updateDriverStatus(UUID userId, UserProfile.DriverStatus status) {
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user: " + userId));
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
 
         profile.setDriverStatus(status);
         profile = userProfileRepository.save(profile);
@@ -120,7 +121,7 @@ public class ProfileService {
     @Transactional
     public void updateDriverStatusFromValidation(UUID userId, boolean isApproved) {
         UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user: " + userId));
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
 
         profile.setDriverStatus(isApproved ? UserProfile.DriverStatus.VERIFIED : UserProfile.DriverStatus.REJECTED);
         userProfileRepository.save(profile);

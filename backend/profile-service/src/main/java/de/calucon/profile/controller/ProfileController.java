@@ -22,6 +22,7 @@ import de.calucon.profile.dto.UserProfileResponse;
 import de.calucon.profile.dto.VehicleResponse;
 import de.calucon.profile.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class ProfileController {
     @PostMapping
     @Operation(summary = "Create a new user profile", description = "Create a new user profile (triggered after successful auth registration)")
     public ResponseEntity<UserProfileResponse> createProfile(
-            @RequestHeader("X-User-Id") UUID userId,
+            @Parameter(description = "User ID from authentication service", required = true) @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody CreateProfileRequest request) {
         UserProfileResponse response = profileService.createProfile(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -45,7 +46,8 @@ public class ProfileController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "Retrieve user profile data")
-    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable UUID userId) {
+    public ResponseEntity<UserProfileResponse> getProfile(
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
         UserProfileResponse response = profileService.getProfile(userId);
         return ResponseEntity.ok(response);
     }
@@ -53,7 +55,7 @@ public class ProfileController {
     @PutMapping("/{userId}")
     @Operation(summary = "Update basic profile information", description = "Update basic profile information (name, phone number)")
     public ResponseEntity<UserProfileResponse> updateProfile(
-            @PathVariable UUID userId,
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
             @Valid @RequestBody UpdateProfileRequest request) {
         UserProfileResponse response = profileService.updateProfile(userId, request);
         return ResponseEntity.ok(response);
@@ -61,14 +63,16 @@ public class ProfileController {
 
     @GetMapping("/{userId}/vehicles")
     @Operation(summary = "Retrieve all vehicles associated with a driver")
-    public ResponseEntity<List<VehicleResponse>> getVehicles(@PathVariable UUID userId) {
+    public ResponseEntity<List<VehicleResponse>> getVehicles(
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
         List<VehicleResponse> vehicles = profileService.getVehicles(userId);
         return ResponseEntity.ok(vehicles);
     }
 
     @GetMapping("/{userId}/vehicles/verified")
     @Operation(summary = "Retrieve all verified vehicles associated with a driver")
-    public ResponseEntity<List<VehicleResponse>> getVerifiedVehicles(@PathVariable UUID userId) {
+    public ResponseEntity<List<VehicleResponse>> getVerifiedVehicles(
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
         List<VehicleResponse> vehicles = profileService.getVerifiedVehicles(userId);
         return ResponseEntity.ok(vehicles);
     }
@@ -76,7 +80,7 @@ public class ProfileController {
     @PostMapping("/{userId}/vehicles")
     @Operation(summary = "Add a new vehicle to the driver's profile")
     public ResponseEntity<VehicleResponse> addVehicle(
-            @PathVariable UUID userId,
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
             @Valid @RequestBody CreateVehicleRequest request) {
         VehicleResponse response = profileService.addVehicle(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -85,7 +89,7 @@ public class ProfileController {
     @PutMapping("/{userId}/status")
     @Operation(summary = "Update driver's verification status", description = "Update a driver's verification status (e.g., from pending to verified)")
     public ResponseEntity<UserProfileResponse> updateDriverStatus(
-            @PathVariable UUID userId,
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
             @Valid @RequestBody UpdateDriverStatusRequest request) {
         UserProfileResponse response = profileService.updateDriverStatus(userId, request.getDriverStatus());
         return ResponseEntity.ok(response);

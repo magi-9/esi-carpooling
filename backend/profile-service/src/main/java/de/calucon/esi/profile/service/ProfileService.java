@@ -45,6 +45,25 @@ public class ProfileService {
         return UserProfileResponse.fromEntity(profile);
     }
 
+    @Transactional
+    public void createInitialProfile(UUID userId) {
+        if (userProfileRepository.existsById(userId)) {
+            // Profile already exists, ignore to ensure idempotency
+            return;
+        }
+
+        UserProfile skeletonProfile = UserProfile.builder()
+                .userId(userId)
+                .firstName(null)
+                .lastName(null)
+                .phoneNumber(null)
+                .driverStatus(UserProfile.DriverStatus.NONE)
+                .accountFlagged(false)
+                .build();
+
+        userProfileRepository.save(skeletonProfile);
+    }
+
     @Transactional(readOnly = true)
     public UserProfileResponse getProfile(UUID userId) {
         UserProfile profile = userProfileRepository.findById(userId)

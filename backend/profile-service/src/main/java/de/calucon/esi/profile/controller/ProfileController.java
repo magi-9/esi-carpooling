@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,9 +37,9 @@ public class ProfileController {
     @PostMapping
     @Operation(summary = "Create a new user profile", description = "Create a new user profile (triggered after successful auth registration)")
     public ResponseEntity<UserProfileResponse> createProfile(
-            @Parameter(description = "User ID from authentication service", required = true) @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody CreateProfileRequest request) {
-        UserProfileResponse response = profileService.createProfile(userId, request);
+        // userId is now extracted from the request body
+        UserProfileResponse response = profileService.createProfile(request.getUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

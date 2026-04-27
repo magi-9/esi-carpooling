@@ -1,6 +1,9 @@
 package de.calucon.esi.profile.dto;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -16,6 +19,9 @@ import lombok.Setter;
 @Builder
 public class CreateProfileRequest {
 
+    @NotNull(message = "User ID is required")
+    private UUID userId; // Now provided in the body instead of the header
+
     @NotBlank(message = "First name is required")
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     @Pattern(regexp = "^[\\p{L}\\s\\-']+$", message = "First name contains invalid characters")
@@ -26,7 +32,7 @@ public class CreateProfileRequest {
     @Pattern(regexp = "^[\\p{L}\\s\\-']+$", message = "Last name contains invalid characters")
     private String lastName;
 
-    @Size(min = 0, max = 20, message = "Phone number must not exceed 20 characters")
+    @Size(max = 20, message = "Phone number must not exceed 20 characters")
     @Pattern(regexp = "^[+]?[0-9\\s\\-()]*$", message = "Phone number contains invalid characters")
     private String phoneNumber;
 }

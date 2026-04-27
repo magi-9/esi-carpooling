@@ -1,0 +1,41 @@
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Java source files (Standard Spring Boot style)
+[*.java]
+indent_style = space
+indent_size = 4
+tab_width = 4
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999
+
+# Gradle and Groovy files
+[*.{gradle,groovy}]
+indent_style = space
+indent_size = 4
+
+# YAML and Properties configuration files
+[*.{yml,yaml,properties}]
+indent_style = space
+indent_size = 2
+
+# Dockerfiles
+[{Dockerfile,docker-compose.yml}]
+indent_style = space
+indent_size = 2
+
+# JSON and XML files
+[*.{json,xml}]
+indent_style = space
+indent_size = 2
+
+# Markdown files (Allow trailing whitespace for hard line breaks)
+[*.md]
+trim_trailing_whitespace = false

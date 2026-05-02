@@ -1,16 +1,16 @@
 # Payment Service
 
-Handles the full payment lifecycle for completed rides — from initiation through completion and optional refund.
+Manages the complete payment lifecycle after a ride is completed, including transaction authorization and refunds.
 
 ## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/payments` | Initiate a new payment |
+| POST | `/payments` | Initiate a payment for a completed ride |
 | GET | `/payments/{paymentId}` | Get payment details |
-| PATCH | `/payments/{paymentId}/complete` | Mark payment as completed |
-| POST | `/payments/{paymentId}/refunds` | Request a refund |
-| GET | `/payments/{paymentId}/refunds` | Get refund status |
+| POST | `/payments/{paymentId}/refunds` | Request a refund for a completed payment |
+| GET | `/payments/{paymentId}/refunds` | Get refund details |
+| POST | `/payments/authorize` | Authorize a transaction and place a temporary hold |
 
 ## Payment State Machine
 
@@ -20,14 +20,15 @@ INITIATED ──► PROCESSING ──► COMPLETED ──► REFUNDED
     └───────────────┴──► FAILED
 ```
 
-- Only `INITIATED` / `PROCESSING` can be completed or failed
-- Only `COMPLETED` can be refunded
+- `POST /payments` creates a completed payment record for the approved flow.
+- `POST /payments/authorize` creates a processing payment that can be captured later.
+- Only `COMPLETED` payments can be refunded.
 
 ## Domain Model
 
 - **Payment** (Aggregate Root) — owns the full lifecycle
 - **Money** (Value Object) — amount + currency, immutable
-- **Refund** (Entity) — created when payment is refunded, has own identity
+- **Refund** (Entity) — created when payment is refunded, has its own identity
 - **PaymentRepository** (Interface) — abstraction over JPA persistence
 
 ## Running Locally
@@ -37,7 +38,7 @@ cd payment-service
 mvn spring-boot:run
 ```
 
-Service starts on port **8081** (H2 in-memory DB).
+Service starts on port **8081** by default and uses an H2 in-memory database.
 
 H2 Console: http://localhost:8081/h2-console
 JDBC URL: `jdbc:h2:mem:paymentdb`
@@ -70,3 +71,8 @@ DB_PASSWORD=secret
 DB_DRIVER=org.postgresql.Driver
 JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 ```
+
+## Implementation Notes
+
+- The service persists payments in its own database through JPA.
+- The controller currently exposes initiate, authorize, get-payment, refund-create, and refund-get routes.

@@ -1,0 +1,41 @@
+# the version of the Docker compose
+version: '3.8'
+# services:
+services:
+  # our first service
+  ride-booking-service:
+    build: .  #the location where it can find the Dockerfile to build this service
+    # using the already built image of the Spring Boot project
+    image: 'ride-booking-service:latest'  
+    # restarts the container if it stops. 
+    restart: always
+    # mapping local machine port along with port inside a docker container
+    ports:
+      - 8083:8080
+    # Express dependency between services. 
+    depends_on:
+      - postgre_db
+    # Allows adding environment variables
+    environment:
+      - spring.datasource.url=jdbc:postgresql://postgre_db:5432/esi2023
+      # note that we have replaced the localhost with the name of the database service
+      - spring.datasource.username=postgres
+      - spring.datasource.password=postgres
+  # our second service
+  postgre_db:
+    # we do not need a build command here because we will pull an already built image from docker hub
+    image: "postgres:14"
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_ROOT_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=esi2023
+    #volumes:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"] #checking the connection status of a PostgreSQL database server
+      interval: 10s
+      timeout: 5s
+      retries: 5

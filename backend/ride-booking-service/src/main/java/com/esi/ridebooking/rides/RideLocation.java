@@ -3,6 +3,8 @@ package com.esi.ridebooking.rides;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -10,8 +12,9 @@ import jakarta.persistence.Table;
 @Table(name = "ride_location")
 public class RideLocation {
 
-	@Id
-	private UUID rideLocationId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID rideLocationId;
 
 	private Double latitude;
 

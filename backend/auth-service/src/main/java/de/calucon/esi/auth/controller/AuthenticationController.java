@@ -47,8 +47,10 @@ public class AuthenticationController {
         try {
             return ResponseEntity.ok(authenticationService.register(request));
         } catch (IllegalArgumentException e) {
+            SecurityContextHolder.clearContext();
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (org.springframework.kafka.KafkaException e) {
+            SecurityContextHolder.clearContext();
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("Registration temporarily unavailable");
         }
     }
@@ -64,6 +66,7 @@ public class AuthenticationController {
         try {
             return ResponseEntity.ok(authenticationService.login(request));
         } catch (AuthenticationException e) {
+            SecurityContextHolder.clearContext();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }

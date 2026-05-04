@@ -57,7 +57,7 @@ public class AuthenticationService {
                 .build();
         userEventProducer.publishUserRegisteredEvent(event);
 
-        return buildResponse(user);
+        return buildJwtResponse(user);
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws NoSuchElementException {
@@ -72,7 +72,7 @@ public class AuthenticationService {
                 .findByEmail(request.getEmail())
                 .orElseThrow(); // Shouldn't happen if authentication passed
 
-        return buildResponse(user);
+        return buildJwtResponse(user);
     }
 
     public Set<Role> getUserRoles() throws NoSuchElementException {
@@ -107,7 +107,7 @@ public class AuthenticationService {
     public AuthenticationResponse refreshToken() {
         var user = getCurrentUser();
 
-        return buildResponse(user);
+        return buildJwtResponse(user);
     }
 
     private User getCurrentUser() {
@@ -126,7 +126,7 @@ public class AuthenticationService {
         return authentication;
     }
 
-    private AuthenticationResponse buildResponse(User user) {
+    private AuthenticationResponse buildJwtResponse(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("roles", user.getRoles());
         extraClaims.put("email", user.getUsername());

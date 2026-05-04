@@ -8,6 +8,7 @@ include:
   - backend/ride-discovery-service/docker-compose.yml
   - backend/auth-service/compose.yaml
   - backend/profile-service/compose.yaml
+  - backend/validation-service/compose.yaml
   - frontend/docker-compose.yml
 
 # Shared network for all services

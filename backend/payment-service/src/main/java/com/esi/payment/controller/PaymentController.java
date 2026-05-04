@@ -5,6 +5,8 @@ import com.esi.payment.dto.PaymentResponse;
 import com.esi.payment.dto.RefundRequest;
 import com.esi.payment.dto.RefundResponse;
 import com.esi.payment.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/payments")
+@Tag(name = "Payments", description = "Payment lifecycle and refund operations")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -29,6 +32,7 @@ public class PaymentController {
     }
 
     @PostMapping
+    @Operation(summary = "Initiate a payment", description = "Creates a completed payment after validating the booking.")
     public ResponseEntity<PaymentResponse> initiatePayment(
             @Valid @RequestBody InitiatePaymentRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -37,11 +41,13 @@ public class PaymentController {
     }
 
     @GetMapping("/{paymentId}")
+    @Operation(summary = "Get payment details", description = "Returns a payment by its identifier.")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(paymentService.getPayment(paymentId));
     }
 
     @PostMapping("/authorize")
+    @Operation(summary = "Authorize a payment", description = "Creates a processing payment that can be captured later.")
     public ResponseEntity<PaymentResponse> authorizePayment(
             @Valid @RequestBody InitiatePaymentRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -50,6 +56,7 @@ public class PaymentController {
     }
 
     @PostMapping("/{paymentId}/refunds")
+    @Operation(summary = "Request a refund", description = "Creates a refund for a completed payment.")
     public ResponseEntity<RefundResponse> requestRefund(
             @PathVariable UUID paymentId,
             @Valid @RequestBody RefundRequest request) {
@@ -58,6 +65,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{paymentId}/refunds")
+    @Operation(summary = "Get refund details", description = "Returns the refund linked to a payment.")
     public ResponseEntity<RefundResponse> getRefund(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(paymentService.getRefund(paymentId));
     }

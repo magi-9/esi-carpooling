@@ -10,6 +10,8 @@ import com.esi.ridediscovery.dto.SearchCriteriaResponse;
 import com.esi.ridediscovery.dto.SearchRequest;
 import com.esi.ridediscovery.dto.SearchResponse;
 import com.esi.ridediscovery.service.SearchService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -22,6 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/search")
+@Tag(name = "Ride Discovery", description = "Search and ranking of available rides")
 public class SearchController {
 
     private final SearchService searchService;
@@ -31,6 +34,7 @@ public class SearchController {
     }
 
     @GetMapping
+        @Operation(summary = "Search rides", description = "Finds and ranks available rides using address or coordinate search criteria.")
     public ResponseEntity<SearchResponse> search(
             @ModelAttribute SearchRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader,

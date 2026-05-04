@@ -14,6 +14,7 @@ import de.calucon.esi.profile.dto.UserProfileResponse;
 import de.calucon.esi.profile.dto.VehicleResponse;
 import de.calucon.esi.profile.entity.UserProfile;
 import de.calucon.esi.profile.entity.Vehicle;
+import de.calucon.esi.profile.exception.DuplicateProfileException;
 import de.calucon.esi.profile.exception.ProfileNotFoundException;
 import de.calucon.esi.profile.repository.UserProfileRepository;
 import de.calucon.esi.profile.repository.VehicleRepository;
@@ -29,13 +30,17 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse createProfile(UUID userId, CreateProfileRequest request) {
         // Check if skeleton exists (from Kafka) or create new
-        UserProfile profile = userProfileRepository.findById(userId)
-                .orElse(UserProfile.builder().userId(userId).build());
+        if (userProfileRepository.existsById(userId)) {
+            throw new DuplicateProfileException(userId);
+        }
 
-        profile.setFirstName(request.getFirstName());
-        profile.setLastName(request.getLastName());
-        profile.setPhoneNumber(request.getPhoneNumber());
-        profile.setDriverStatus(UserProfile.DriverStatus.NONE);
+        UserProfile profile = UserProfile.builder()
+                .userId(userId)
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phoneNumber(request.getPhoneNumber())
+                .driverStatus(UserProfile.DriverStatus.NONE)
+                .build();
 
         profile = userProfileRepository.save(profile);
         return UserProfileResponse.fromEntity(profile);

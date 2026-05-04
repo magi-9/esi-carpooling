@@ -6,13 +6,13 @@ services:
   ride-booking-service:
     build: .  #the location where it can find the Dockerfile to build this service
     # using the already built image of the Spring Boot project
-    image: 'ride-booking-service:latest'  
-    # restarts the container if it stops. 
+    image: 'ride-booking-service:latest'
+    # restarts the container if it stops.
     restart: always
     # mapping local machine port along with port inside a docker container
     ports:
       - 8083:8080
-    # Express dependency between services. 
+    # Express dependency between services.
     depends_on:
       - postgre_db
     # Allows adding environment variables
@@ -21,13 +21,17 @@ services:
       # note that we have replaced the localhost with the name of the database service
       - spring.datasource.username=postgres
       - spring.datasource.password=postgres
+      - auth.service.url=http://auth-service:8086
+    networks:
+      - esi-network
+      - default
   # our second service
   postgre_db:
     # we do not need a build command here because we will pull an already built image from docker hub
     image: "postgres:14"
     restart: always
     ports:
-      - 5432:5432
+      - 5434:5432
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_ROOT_PASSWORD=postgres
@@ -39,3 +43,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+

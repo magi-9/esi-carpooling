@@ -32,7 +32,7 @@ public class KafkaConfig {
 
         // Prevent infinite blocking/retrying if Kafka is unreachable
         configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 2000);
-        configProps.put(ProducerConfig.RETRIES_CONFIG, 0);
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 5);
 
         return new DefaultKafkaProducerFactory<>(configProps);
     }

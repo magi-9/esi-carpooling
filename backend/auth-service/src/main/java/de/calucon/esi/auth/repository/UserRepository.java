@@ -4,11 +4,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import de.calucon.esi.auth.model.User;
 
-@Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Spring Data JPA magically translates this method name into a SQL query:

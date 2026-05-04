@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import de.calucon.esi.auth.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -26,10 +27,17 @@ public class JwtService {
     private long jwtExpiration;
 
     /**
+     * Extracts the user ID (UUID) from the token subject.
+     */
+    public String extractUserId(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    /**
      * Extracts the username (which is the email in our case) from the token.
      */
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, claims -> claims.get("email", String.class));
     }
 
     /**
@@ -51,12 +59,20 @@ public class JwtService {
      * Generates a token with extra custom claims (like roles or user ID).
      */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>(extraClaims);
+        claims.put("email", userDetails.getUsername());
+
+        String subject = userDetails.getUsername();
+        if (userDetails instanceof de.calucon.esi.auth.model.User user) {
+            subject = user.getId().toString();
+        }
+
         return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .claims(claims)
+                .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignInKey())
+                .signWith(getSignInKey(), Jwts.SIG.HS384)
                 .compact();
     }
 
@@ -64,8 +80,12 @@ public class JwtService {
      * Validates if the token belongs to the user and is not expired.
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
+        if (userDetails instanceof User user) {
+            final String tokenUserId = extractUserId(token);
+            return (tokenUserId != null && tokenUserId.equals(user.getId().toString())) && !isTokenExpired(token);
+        }
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (username != null && username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

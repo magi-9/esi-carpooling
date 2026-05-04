@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 import com.esi.validation.dto.VerificationRequestDTO;
 import com.esi.validation.service.ValidationService;
@@ -75,5 +77,15 @@ public class ValidationControllerTest {
 
         mockMvc.perform(multipart("/validation").file(dataPart).file(filePart).contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void createValidation_missingData_returnsBadRequest() throws Exception {
+        MockMultipartFile filePart = new MockMultipartFile("files", "id.pdf", "application/pdf", "dummy".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/validation").file(filePart).contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
+
+        verify(validationService, never()).createVerification(any(), anyList());
     }
 }

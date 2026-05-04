@@ -57,17 +57,7 @@ public class AuthenticationService {
                 .build();
         userEventProducer.publishUserRegisteredEvent(event);
 
-        // 5. Generate token with extra claims (useful for your microservices!)
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("roles", user.getRoles());
-        extraClaims.put("userId", user.getId());
-
-        var jwtToken = jwtService.generateToken(extraClaims, user);
-
-        // 5. Return the token
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        return buildResponse(user);
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) throws NoSuchElementException {
@@ -82,17 +72,7 @@ public class AuthenticationService {
                 .findByEmail(request.getEmail())
                 .orElseThrow(); // Shouldn't happen if authentication passed
 
-        // 3. Generate token with extra claims
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("roles", user.getRoles());
-        extraClaims.put("userId", user.getId());
-
-        var jwtToken = jwtService.generateToken(extraClaims, user);
-
-        // 4. Return the token
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        return buildResponse(user);
     }
 
     public Set<Role> getUserRoles() throws NoSuchElementException {
@@ -127,15 +107,7 @@ public class AuthenticationService {
     public AuthenticationResponse refreshToken() {
         var user = getCurrentUser();
 
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("roles", user.getRoles());
-        extraClaims.put("userId", user.getId());
-
-        var jwtToken = jwtService.generateToken(extraClaims, user);
-
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        return buildResponse(user);
     }
 
     private User getCurrentUser() {
@@ -152,6 +124,18 @@ public class AuthenticationService {
         }
 
         return authentication;
+    }
+
+    private AuthenticationResponse buildResponse(User user) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("roles", user.getRoles());
+        extraClaims.put("email", user.getUsername());
+
+        var jwtToken = jwtService.generateToken(extraClaims, user);
+
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 
 }

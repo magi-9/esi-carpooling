@@ -40,4 +40,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
+
+    @ExceptionHandler(com.esi.ridebooking.exception.PaymentException.class)
+    public ResponseEntity<String> handlePaymentException(com.esi.ridebooking.exception.PaymentException ex) {
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(ex.getMessage());
+    }
 }

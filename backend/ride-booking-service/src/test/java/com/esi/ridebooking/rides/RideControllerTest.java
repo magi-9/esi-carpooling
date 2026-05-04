@@ -4,15 +4,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.esi.ridebooking.bookings.BookingDto;
+import com.esi.ridebooking.bookings.CreateBookingRequest;
+import com.esi.ridebooking.exception.PaymentException;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.esi.ridebooking.bookings.BookingDto;
-import com.esi.ridebooking.bookings.CreateBookingRequest;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -112,7 +113,7 @@ public class RideControllerTest {
 		UUID rideId = UUID.randomUUID();
 
 		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
-				.thenThrow(new RuntimeException("No seats available for this ride"));
+				.thenThrow(new IllegalArgumentException("No seats available for this ride"));
 
 		String bookingJson = "{}";
 
@@ -120,7 +121,7 @@ public class RideControllerTest {
 				.header("Authorization", "Bearer valid-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(bookingJson))
-				.andExpect(status().isInternalServerError());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
@@ -128,7 +129,7 @@ public class RideControllerTest {
 		UUID rideId = UUID.randomUUID();
 
 		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
-				.thenThrow(new RuntimeException("Payment authorization failed"));
+				.thenThrow(new PaymentException("Payment authorization failed"));
 
 		String bookingJson = "{}";
 
@@ -136,6 +137,6 @@ public class RideControllerTest {
 				.header("Authorization", "Bearer valid-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(bookingJson))
-				.andExpect(status().isInternalServerError());
+				.andExpect(status().isPaymentRequired());
 	}
 }

@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class BookingService {
 
@@ -21,13 +23,13 @@ public class BookingService {
 
     public BookingDto getBookingById(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
         return toDto(booking);
     }
 
     public void deleteBooking(UUID bookingId) {
         if (!bookingRepository.existsById(bookingId)) {
-            throw new RuntimeException("Booking not found");
+            throw new EntityNotFoundException("Booking not found");
         }
         bookingRepository.deleteById(bookingId);
     }

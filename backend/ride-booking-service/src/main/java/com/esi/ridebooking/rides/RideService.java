@@ -67,14 +67,13 @@ public class RideService {
 		// 2. Extract user ID from JWT token locally (instead of trusting request body)
 		UUID currentUserId = jwtService.extractUserId(authHeader);
 
-		// 3. Verify Vehicle with Profile Service (TODO: implement when profile service
-		// is available)
-		// Currently skipped as profile service is not yet implemented
-		// restClientBuilder.build().get()
-		// .uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles")
-		// .header("Authorization", authHeader)
-		// .retrieve()
-		// .toBodilessEntity();
+		// 3. Verify Vehicle with Profile Service
+		// Check that the vehicle belongs to the driver
+		restClientBuilder.build().get()
+				.uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles/" + request.getVehicleId())
+				.header("Authorization", authHeader)
+				.retrieve()
+				.toBodilessEntity();
 
 		// 4. Geocode addresses via Geolocation Service
 		Map<String, Object> startCoords = restClientBuilder.build().get()
@@ -166,13 +165,13 @@ public class RideService {
 
 	public RideDto getRideById(UUID rideId) {
 		Ride ride = rideRepository.findById(rideId)
-				.orElseThrow(() -> new RuntimeException("Ride not found"));
+				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
 		return mapToDto(ride);
 	}
 
 	public RideDto updateRide(UUID rideId, RideDto dto) {
 		Ride ride = rideRepository.findById(rideId)
-				.orElseThrow(() -> new RuntimeException("Ride not found"));
+				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
 
 		// Only allow updating mutable fields: date, price, currency, status
 		// Do NOT allow updating: driverId, vehicleId, availableSeats (immutable)
@@ -186,9 +185,9 @@ public class RideService {
 
 	public void deleteRide(UUID rideId) {
 		Ride ride = rideRepository.findById(rideId)
-				.orElseThrow(() -> new RuntimeException("Ride not found"));
+				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
 		
-		// 1. Cancel all bookings for this ride before deleting
+		// 1. Cancel all bookings for this ride
 		List<Booking> bookings = bookingRepository.findByRideRideId(rideId);
 		for (Booking booking : bookings) {
 			if ("PENDING".equals(booking.getStatus()) || "CONFIRMED".equals(booking.getStatus())) {
@@ -197,8 +196,10 @@ public class RideService {
 			}
 		}
 		
-		// 2. Delete the ride
-		rideRepository.deleteById(rideId);
+		// 2. Mark ride as CANCELLED (soft delete) instead of hard deleting
+		// This preserves the ride reference for historical bookings
+		ride.setStatus("CANCELLED");
+		rideRepository.save(ride);
 	}
 
 	public BookingDto createBooking(UUID rideId, CreateBookingRequest request, String authHeader) {
@@ -214,10 +215,10 @@ public class RideService {
 
 		// 3. Check seat availability by counting confirmed bookings
 		Ride ride = rideRepository.findById(rideId)
-				.orElseThrow(() -> new RuntimeException("Ride not found"));
+				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
 
 		if (!ride.hasAvailableSeats()) {
-			throw new RuntimeException("No seats available for this ride");
+			throw new IllegalArgumentException("No seats available for this ride");
 		}
 
 		// 4. Check for duplicate booking - prevent same passenger booking same ride multiple times
@@ -229,7 +230,7 @@ public class RideService {
 				.isPresent();
 		
 		if (alreadyBooked) {
-			throw new RuntimeException("Passenger already has a booking for this ride");
+			throw new IllegalArgumentException("Passenger already has a booking for this ride");
 		}
 
 		// 5. Create pending booking
@@ -262,7 +263,7 @@ public class RideService {
 		} catch (Exception e) {
 			// Payment failed - rollback by deleting pending booking
 			bookingRepository.delete(savedBooking);
-			throw new RuntimeException("Payment authorization failed: " + e.getMessage());
+			throw new com.esi.ridebooking.exception.PaymentException("Payment authorization failed: " + e.getMessage());
 		}
 
 		return mapBookingToDto(savedBooking);

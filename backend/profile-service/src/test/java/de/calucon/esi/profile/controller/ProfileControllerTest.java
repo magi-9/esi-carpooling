@@ -22,6 +22,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,8 +41,11 @@ import de.calucon.esi.profile.service.ProfileService;
 
 @SpringBootTest
 @Import(GlobalExceptionHandler.class) // Ensure our custom error handler is loaded
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc // removed addFilters=false to let security filters run, or leave it if method
+                      // security is all that matters. Actually, let's keep it to default (filters
+                      // enabled)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@WithMockUser(username = "123e4567-e89b-12d3-a456-426614174000")
 class ProfileControllerTest {
 
     @Autowired
@@ -61,7 +65,7 @@ class ProfileControllerTest {
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
+        userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"); // Use a fixed UUID for mock user
         defaultResponse = UserProfileResponse.builder()
                 .userId(userId)
                 .firstName("Simon")

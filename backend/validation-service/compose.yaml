@@ -26,3 +26,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  db-init:
+    image: postgres:latest
+    depends_on: ["postgres_db"]
+    entrypoint: >
+      sh -c "until pg_isready -h postgres_db -p 5432 -U postgres; do sleep 1; done;
+      psql -h postgres_db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname='validationdb'\" | grep -q 1 || psql -h postgres_db -U postgres -c \"CREATE DATABASE validationdb;\""
+    environment:
+      PGPASSWORD: admin
+    restart: "no"

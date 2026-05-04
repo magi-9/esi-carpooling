@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.esi.validation.dto.CreateVerificationRequestDTO;
 import com.esi.validation.dto.VerificationRequestDTO;
@@ -50,6 +51,7 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     @Override
+    @Transactional
     public VerificationRequestDTO retry(UUID requestId) {
         VerificationRequest v = repository.findById(requestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Verification request not found"));

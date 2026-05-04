@@ -24,8 +24,8 @@ public class Document {
     @Column(name = "content_type")
     private String contentType;
 
-    @Lob
-    @Column(name = "data")
+    @Column(name = "data", columnDefinition = "BYTEA")
+    @Basic(fetch = FetchType.LAZY)
     private byte[] data;
 
     @ManyToOne(fetch = FetchType.LAZY)

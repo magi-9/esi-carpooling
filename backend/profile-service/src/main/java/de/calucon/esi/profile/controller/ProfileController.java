@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import de.calucon.esi.profile.dto.VehicleResponse;
 import de.calucon.esi.profile.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +32,13 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/profiles")
 @RequiredArgsConstructor
 @Tag(name = "Profile Service", description = "User profile and vehicle management endpoints")
+@SecurityRequirement(name = "bearerAuth")
 public class ProfileController {
 
     private final ProfileService profileService;
 
     @PostMapping
+    @PreAuthorize("#request.userId.toString() == authentication.name")
     @Operation(summary = "Create a new user profile", description = "Create a new user profile (triggered after successful auth registration)")
     public ResponseEntity<UserProfileResponse> createProfile(
             @Valid @RequestBody CreateProfileRequest request) {
@@ -44,6 +48,7 @@ public class ProfileController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Retrieve user profile data")
     public ResponseEntity<UserProfileResponse> getProfile(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
@@ -52,6 +57,7 @@ public class ProfileController {
     }
 
     @PutMapping("/{userId}")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Update basic profile information", description = "Update basic profile information (name, phone number)")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
@@ -61,6 +67,7 @@ public class ProfileController {
     }
 
     @GetMapping("/{userId}/vehicles")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Retrieve all vehicles associated with a driver")
     public ResponseEntity<List<VehicleResponse>> getVehicles(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
@@ -69,6 +76,7 @@ public class ProfileController {
     }
 
     @GetMapping("/{userId}/vehicles/verified")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Retrieve all verified vehicles associated with a driver")
     public ResponseEntity<List<VehicleResponse>> getVerifiedVehicles(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId) {
@@ -77,6 +85,7 @@ public class ProfileController {
     }
 
     @PostMapping("/{userId}/vehicles")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Add a new vehicle to the driver's profile")
     public ResponseEntity<VehicleResponse> addVehicle(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
@@ -86,6 +95,7 @@ public class ProfileController {
     }
 
     @PutMapping("/{userId}/status")
+    @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Update driver's verification status", description = "Update a driver's verification status (e.g., from pending to verified)")
     public ResponseEntity<UserProfileResponse> updateDriverStatus(
             @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,

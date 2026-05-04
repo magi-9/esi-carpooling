@@ -11,8 +11,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.esi.ridebooking.bookings.BookingDto;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,22 +51,24 @@ public class RideControllerTest {
 
 		when(rideService.createRide(any(RideDto.class), anyString())).thenReturn(responseDto);
 
+		String rideJson = String.format("""
+				{
+				    "driverId": "%s",
+				    "vehicleId": "%s",
+				    "availableSeats": 3,
+				    "rideStartDate": "2026-05-05T10:00:00",
+				    "seatPriceAmount": 25.50,
+				    "seatPriceCurrency": "EUR",
+				    "status": "PENDING",
+				    "startAddress": "Vilnius",
+				    "endAddress": "Kaunas"
+				}
+				""", requestDto.getDriverId(), requestDto.getVehicleId());
+
 		mockMvc.perform(post("/rides")
 				.header("Authorization", "Bearer valid-token")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("""
-						{
-						    "driverId": "%s",
-						    "vehicleId": "%s",
-						    "availableSeats": 3,
-						    "rideStartDate": "2026-05-05T10:00:00",
-						    "seatPriceAmount": 25.50,
-						    "seatPriceCurrency": "EUR",
-						    "status": "PENDING",
-						    "startAddress": "Vilnius",
-						    "endAddress": "Kaunas"
-						}
-						""".formatted(requestDto.getDriverId(), requestDto.getVehicleId())))
+				.content(rideJson))
                 .andExpect(status().isOk());
 	}
 
@@ -88,6 +93,78 @@ public class RideControllerTest {
 						    "endAddress": "B"
 						}
 						"""))
+				.andExpect(status().isInternalServerError());
+	}
+
+	@Test
+	void createBooking_HappyPath() throws Exception {
+		UUID rideId = UUID.randomUUID();
+		UUID bookingId = UUID.randomUUID();
+		UUID passengerId = UUID.randomUUID();
+
+		BookingDto responseDto = new BookingDto();
+		responseDto.setBookingId(bookingId);
+		responseDto.setRideId(rideId);
+		responseDto.setPassengerId(passengerId);
+		responseDto.setStatus("CONFIRMED");
+
+		when(rideService.createBooking(eq(rideId), any(BookingDto.class), anyString())).thenReturn(responseDto);
+
+		String bookingJson = String.format("""
+				{
+				    "passengerId": "%s",
+				    "status": "PENDING"
+				}
+				""", passengerId);
+
+		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
+				.header("Authorization", "Bearer valid-token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(bookingJson))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void createBooking_NoSeatsAvailable() throws Exception {
+		UUID rideId = UUID.randomUUID();
+		UUID passengerId = UUID.randomUUID();
+
+		when(rideService.createBooking(eq(rideId), any(BookingDto.class), anyString()))
+				.thenThrow(new RuntimeException("No seats available for this ride"));
+
+		String bookingJson = String.format("""
+				{
+				    "passengerId": "%s",
+				    "status": "PENDING"
+				}
+				""", passengerId);
+
+		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
+				.header("Authorization", "Bearer valid-token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(bookingJson))
+				.andExpect(status().isInternalServerError());
+	}
+
+	@Test
+	void createBooking_PaymentFailure() throws Exception {
+		UUID rideId = UUID.randomUUID();
+		UUID passengerId = UUID.randomUUID();
+
+		when(rideService.createBooking(eq(rideId), any(BookingDto.class), anyString()))
+				.thenThrow(new RuntimeException("Payment authorization failed"));
+
+		String bookingJson = String.format("""
+				{
+				    "passengerId": "%s",
+				    "status": "PENDING"
+				}
+				""", passengerId);
+
+		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
+				.header("Authorization", "Bearer valid-token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(bookingJson))
 				.andExpect(status().isInternalServerError());
 	}
 }

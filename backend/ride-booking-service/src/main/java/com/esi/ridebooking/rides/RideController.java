@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 import com.esi.ridebooking.bookings.BookingDto;
 
 @RestController
@@ -53,7 +51,7 @@ public class RideController {
     }
 
     @PostMapping("/{rideId}/bookings")
-    public BookingDto createBooking(@PathVariable UUID rideId, @RequestBody BookingDto dto) {
-        return rideService.createBooking(rideId, dto);
+    public UUID createBooking(@PathVariable UUID rideId, @RequestHeader(value = "Authorization", required = false) String authHeader, @RequestBody BookingDto dto) {
+        return rideService.createBooking(rideId, dto, authHeader).getBookingId();
     }
 }

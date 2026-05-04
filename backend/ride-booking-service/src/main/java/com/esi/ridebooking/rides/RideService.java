@@ -39,6 +39,9 @@ public class RideService {
     @Value("${geolocation.service.url:http://localhost:8088}")
     private String geolocationServiceUrl;
 
+    @Value("${payment.service.url:http://localhost:8081}")
+    private String paymentServiceUrl;
+
     public RideDto createRide(RideDto dto, String authHeader) {
         // 1. Validate Auth Service (verify session)
         restClientBuilder.build().get()
@@ -138,17 +141,59 @@ public class RideService {
         rideRepository.deleteById(rideId);
     }
 
-    public BookingDto createBooking(UUID rideId, BookingDto dto) {
+    public BookingDto createBooking(UUID rideId, BookingDto dto, String authHeader) {
+        // 1. Validate passenger identity via Auth Service
+        restClientBuilder.build().get()
+                .uri(authServiceUrl + "/auth/validate")
+                .header("Authorization", authHeader)
+                .retrieve()
+                .toBodilessEntity();
+
+        // 2. Check seat availability
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found"));
+        
+        if (ride.getAvailableSeats() <= 0) {
+            throw new RuntimeException("No seats available for this ride");
+        }
 
+        // 3. Create pending booking
         Booking booking = new Booking();
         booking.setRide(ride);
         booking.setPassengerId(dto.getPassengerId());
-        booking.setPaymentId(dto.getPaymentId());
-        booking.setStatus(dto.getStatus());
-
+        booking.setStatus("PENDING");
         Booking savedBooking = bookingRepository.save(booking);
+
+        // 4. Call Payment Service to authorize transaction
+        try {
+            Map<String, Object> paymentRequest = Map.of(
+                    "bookingId", savedBooking.getBookingId(),
+                    "amount", ride.getSeatPriceAmount(),
+                    "currency", ride.getSeatPriceCurrency(),
+                    "payerId", dto.getPassengerId()
+            );
+
+            Map<String, Object> paymentResponse = restClientBuilder.build().post()
+                    .uri(paymentServiceUrl + "/payments/authorize")
+                    .header("Authorization", authHeader)
+                    .body(paymentRequest)
+                    .retrieve()
+                    .body(Map.class);
+
+            // 5. Payment succeeded - confirm booking and reduce available seats
+            savedBooking.setStatus("CONFIRMED");
+            savedBooking.setPaymentId(UUID.fromString((String) paymentResponse.get("paymentId")));
+            bookingRepository.save(savedBooking);
+
+            ride.setAvailableSeats(ride.getAvailableSeats() - 1);
+            rideRepository.save(ride);
+
+        } catch (Exception e) {
+            // Payment failed - rollback by deleting pending booking
+            bookingRepository.delete(savedBooking);
+            throw new RuntimeException("Payment authorization failed: " + e.getMessage());
+        }
+
         return mapBookingToDto(savedBooking);
     }
 

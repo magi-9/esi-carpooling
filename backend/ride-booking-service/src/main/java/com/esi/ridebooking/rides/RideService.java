@@ -16,6 +16,7 @@ import com.esi.ridebooking.bookings.Booking;
 import com.esi.ridebooking.bookings.BookingDto;
 import com.esi.ridebooking.bookings.BookingRepository;
 import com.esi.ridebooking.bookings.CreateBookingRequest;
+import com.esi.ridebooking.util.JwtService;
 
 @Service
 public class RideService {
@@ -32,6 +33,9 @@ public class RideService {
 	@Autowired
 	private RestClient.Builder restClientBuilder;
 
+	@Autowired
+	private JwtService jwtService;
+
 	@Value("${auth.service.url:http://localhost:8086}")
 	private String authServiceUrl;
 
@@ -43,21 +47,6 @@ public class RideService {
 
 	@Value("${payment.service.url:http://localhost:8081}")
 	private String paymentServiceUrl;
-
-	private UUID getCurrentUserId(String authHeader) {
-		// Call auth service to get current user info from token
-		// Returns userId extracted from the validated JWT token
-		Map<String, Object> userInfo = restClientBuilder.build().get()
-				.uri(authServiceUrl + "/auth/user")
-				.header("Authorization", authHeader)
-				.retrieve()
-				.body(Map.class);
-		
-		if (userInfo == null || userInfo.get("userId") == null) {
-			throw new RuntimeException("Unable to get current user from token");
-		}
-		return UUID.fromString((String) userInfo.get("userId"));
-	}
 
 	public RideDto createRide(CreateRideRequest request, String authHeader) {
 		// 1. Validate Auth Service (verify session and Driver role)
@@ -75,8 +64,8 @@ public class RideService {
 				.retrieve()
 				.toBodilessEntity();
 
-		// 2. Get current user ID from auth service (instead of trusting request)
-		UUID currentUserId = getCurrentUserId(authHeader);
+		// 2. Extract user ID from JWT token locally (instead of trusting request body)
+		UUID currentUserId = jwtService.extractUserId(authHeader);
 
 		// 3. Verify Vehicle with Profile Service (TODO: implement when profile service
 		// is available)
@@ -220,7 +209,10 @@ public class RideService {
 				.retrieve()
 				.toBodilessEntity();
 
-		// 2. Check seat availability by counting confirmed bookings
+		// 2. Extract passenger ID from JWT token locally
+		UUID passengerId = jwtService.extractUserId(authHeader);
+
+		// 3. Check seat availability by counting confirmed bookings
 		Ride ride = rideRepository.findById(rideId)
 				.orElseThrow(() -> new RuntimeException("Ride not found"));
 
@@ -228,10 +220,10 @@ public class RideService {
 			throw new RuntimeException("No seats available for this ride");
 		}
 
-		// 3. Check for duplicate booking - prevent same passenger booking same ride multiple times
+		// 4. Check for duplicate booking - prevent same passenger booking same ride multiple times
 		List<Booking> existingBookings = bookingRepository.findByRideRideId(rideId);
 		boolean alreadyBooked = existingBookings.stream()
-				.filter(b -> request.getPassengerId().equals(b.getPassengerId()))
+				.filter(b -> passengerId.equals(b.getPassengerId()))
 				.filter(b -> !"CANCELLED".equals(b.getStatus()))
 				.findAny()
 				.isPresent();
@@ -240,20 +232,20 @@ public class RideService {
 			throw new RuntimeException("Passenger already has a booking for this ride");
 		}
 
-		// 4. Create pending booking
+		// 5. Create pending booking
 		Booking booking = new Booking();
 		booking.setRide(ride);
-		booking.setPassengerId(request.getPassengerId());
+		booking.setPassengerId(passengerId);
 		booking.setStatus("PENDING");
 		Booking savedBooking = bookingRepository.save(booking);
 
-		// 5. Call Payment Service to authorize transaction
+		// 6. Call Payment Service to authorize transaction
 		try {
 			Map<String, Object> paymentRequest = Map.of(
 					"bookingId", savedBooking.getBookingId(),
 					"amount", ride.getSeatPriceAmount(),
 					"currency", ride.getSeatPriceCurrency(),
-					"payerId", request.getPassengerId());
+					"payerId", passengerId);
 
 			Map<String, Object> paymentResponse = restClientBuilder.build().post()
 					.uri(paymentServiceUrl + "/payments/authorize")

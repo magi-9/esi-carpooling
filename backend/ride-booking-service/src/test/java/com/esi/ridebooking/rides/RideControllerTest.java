@@ -43,10 +43,9 @@ public class RideControllerTest {
 
 		when(rideService.createRide(any(CreateRideRequest.class), anyString())).thenReturn(responseDto);
 
-		String rideJson = String.format("""
+		String rideJson = """
 				{
-				    "driverId": "%s",
-				    "vehicleId": "%s",
+				    "vehicleId": "550e8400-e29b-41d4-a716-446655440000",
 				    "availableSeats": 3,
 				    "rideStartDate": "2026-05-05T10:00:00",
 				    "seatPriceAmount": 25.50,
@@ -54,7 +53,7 @@ public class RideControllerTest {
 				    "startAddress": "Vilnius",
 				    "endAddress": "Kaunas"
 				}
-				""", driverId, vehicleId);
+				""";
 
 		mockMvc.perform(post("/rides")
 				.header("Authorization", "Bearer valid-token")
@@ -73,7 +72,6 @@ public class RideControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("""
 						{
-						    "driverId": "00000000-0000-0000-0000-000000000000",
 						    "vehicleId": "00000000-0000-0000-0000-000000000000",
 						    "availableSeats": 1,
 						    "rideStartDate": "2026-05-05T10:00:00",
@@ -100,11 +98,7 @@ public class RideControllerTest {
 
 		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString())).thenReturn(responseDto);
 
-		String bookingJson = String.format("""
-				{
-				    "passengerId": "%s"
-				}
-				""", passengerId);
+		String bookingJson = "{}";
 
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
 				.header("Authorization", "Bearer valid-token")
@@ -116,16 +110,11 @@ public class RideControllerTest {
 	@Test
 	void createBooking_NoSeatsAvailable() throws Exception {
 		UUID rideId = UUID.randomUUID();
-		UUID passengerId = UUID.randomUUID();
 
 		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
 				.thenThrow(new RuntimeException("No seats available for this ride"));
 
-		String bookingJson = String.format("""
-				{
-				    "passengerId": "%s"
-				}
-				""", passengerId);
+		String bookingJson = "{}";
 
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
 				.header("Authorization", "Bearer valid-token")
@@ -137,16 +126,11 @@ public class RideControllerTest {
 	@Test
 	void createBooking_PaymentFailure() throws Exception {
 		UUID rideId = UUID.randomUUID();
-		UUID passengerId = UUID.randomUUID();
 
 		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
 				.thenThrow(new RuntimeException("Payment authorization failed"));
 
-		String bookingJson = String.format("""
-				{
-				    "passengerId": "%s"
-				}
-				""", passengerId);
+		String bookingJson = "{}";
 
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
 				.header("Authorization", "Bearer valid-token")

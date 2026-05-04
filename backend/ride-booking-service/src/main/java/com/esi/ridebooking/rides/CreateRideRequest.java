@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class CreateRideRequest {
-    private UUID driverId;
     private UUID vehicleId;
     private Integer availableSeats;
     private LocalDateTime rideStartDate;
@@ -14,8 +13,6 @@ public class CreateRideRequest {
     private String startAddress;
     private String endAddress;
 
-    public UUID getDriverId() { return driverId; }
-    public void setDriverId(UUID driverId) { this.driverId = driverId; }
     public UUID getVehicleId() { return vehicleId; }
     public void setVehicleId(UUID vehicleId) { this.vehicleId = vehicleId; }
     public Integer getAvailableSeats() { return availableSeats; }

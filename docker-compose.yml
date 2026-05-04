@@ -8,6 +8,7 @@ include:
   - backend/ride-discovery-service/docker-compose.yml
   - backend/auth-service/compose.yaml
   - backend/profile-service/compose.yaml
+  - backend/validation-service/compose.yaml
   - backend/ride-booking-service/docker-compose.yml
   - frontend/docker-compose.yml
 

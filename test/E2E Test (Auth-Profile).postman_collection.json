@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "ESI End-to-End Microservices API (Auth + Profile)",
-    "description": "Unified integration test suite covering 100% of the documented Auth and Profile endpoints, with fixed variable states, token invalidation, and 'sub' claim extraction.",
+    "name": "ESI End-to-End Event-Driven API (Auth + Profile)",
+    "description": "Automated E2E suite. Includes dynamic variable state, token invalidation failsafes, 'sub' claim extraction, a 3-second Kafka delay, and negative testing for duplicate profiles.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -34,7 +34,7 @@
   "item": [
     {
       "name": "Auth Service",
-      "description": "All 7 endpoints from the Auth Service specification",
+      "description": "Auth endpoints and JWT generation.",
       "item": [
         {
           "name": "1. Register User",
@@ -62,14 +62,10 @@
                   "    var jsonData = pm.response.json();",
                   "    ",
                   "    if (jsonData.token) {",
-                  "        // 1. Save the token",
                   "        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
                   "        ",
                   "        try {",
-                  "            // 2. Decode the middle part of the JWT (the payload)",
                   "            var payload = JSON.parse(atob(jsonData.token.split('.')[1]));",
-                  "            ",
-                  "            // 3. Extract the 'sub' claim and save it as the userId",
                   "            if (payload.sub) { ",
                   "                pm.collectionVariables.set(\"userId\", payload.sub); ",
                   "                console.log(\"Successfully extracted User ID: \" + payload.sub);",
@@ -81,7 +77,6 @@
                   "        }",
                   "    }",
                   "} else {",
-                  "    // Failsafe: Wipe old credentials if auth fails",
                   "    pm.collectionVariables.unset(\"jwt_token\");",
                   "    pm.collectionVariables.unset(\"userId\");",
                   "    console.log(\"Auth failed. Old session wiped.\");",
@@ -131,14 +126,10 @@
                   "    var jsonData = pm.response.json();",
                   "    ",
                   "    if (jsonData.token) {",
-                  "        // 1. Save the token",
                   "        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
                   "        ",
                   "        try {",
-                  "            // 2. Decode the middle part of the JWT (the payload)",
                   "            var payload = JSON.parse(atob(jsonData.token.split('.')[1]));",
-                  "            ",
-                  "            // 3. Extract the 'sub' claim and save it as the userId",
                   "            if (payload.sub) { ",
                   "                pm.collectionVariables.set(\"userId\", payload.sub); ",
                   "                console.log(\"Successfully extracted User ID: \" + payload.sub);",
@@ -150,7 +141,6 @@
                   "        }",
                   "    }",
                   "} else {",
-                  "    // Failsafe: Wipe old credentials if auth fails",
                   "    pm.collectionVariables.unset(\"jwt_token\");",
                   "    pm.collectionVariables.unset(\"userId\");",
                   "    console.log(\"Auth failed. Old session wiped.\");",
@@ -361,7 +351,7 @@
     },
     {
       "name": "Profile Service",
-      "description": "All 7 endpoints from the Profile Service specification. Inherits JWT token automatically.",
+      "description": "Profile endpoints testing the asynchronous Kafka creation and subsequent updates.",
       "auth": {
         "type": "bearer",
         "bearer": [
@@ -374,46 +364,21 @@
       },
       "item": [
         {
-          "name": "1. Create Profile",
+          "name": "1. Get Auto-Created Profile (Kafka Wait)",
           "event": [
             {
-              "listen": "test",
+              "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200 or 201\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "// Force Postman to wait 3 seconds to give Kafka time to create the profile",
+                  "console.log(\"Waiting 3 seconds for Kafka to process the registration event...\");",
+                  "pm.sendRequest('https://postman-echo.com/delay/3', function (err, response) {",
+                  "    console.log(\"Wake up! Checking if Profile exists now...\");",
                   "});"
                 ],
                 "type": "text/javascript"
               }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"userId\": \"{{userId}}\",\n    \"firstName\": \"Simon\",\n    \"lastName\": \"Schwitz\",\n    \"phoneNumber\": \"+4912345678\"\n}"
             },
-            "url": {
-              "raw": "{{profileBaseUrl}}/profiles",
-              "host": [
-                "{{profileBaseUrl}}"
-              ],
-              "path": [
-                "profiles"
-              ]
-            }
-          }
-        },
-        {
-          "name": "2. Get Profile",
-          "event": [
             {
               "listen": "test",
               "script": {
@@ -436,6 +401,46 @@
               "path": [
                 "profiles",
                 "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Attempt Duplicate Profile Creation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Verify duplicate profile creation is rejected\", function () {",
+                  "    // We expect the server to throw an error (400 Bad Request, 409 Conflict, or 500 Server Error)",
+                  "    // It absolutely should NOT return a 200 or 201 created status.",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 409, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"{{userId}}\",\n    \"firstName\": \"Duplicate\",\n    \"lastName\": \"Test\",\n    \"phoneNumber\": \"+4911111111\"\n}"
+            },
+            "url": {
+              "raw": "{{profileBaseUrl}}/profiles",
+              "host": [
+                "{{profileBaseUrl}}"
+              ],
+              "path": [
+                "profiles"
               ]
             }
           }

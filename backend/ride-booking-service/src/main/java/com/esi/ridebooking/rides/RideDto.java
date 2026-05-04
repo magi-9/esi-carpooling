@@ -13,8 +13,8 @@ public class RideDto {
     private BigDecimal seatPriceAmount;
     private String seatPriceCurrency;
     private String status;
-    private RideLocationDto startLocation;
-    private RideLocationDto endLocation;
+    private String startAddress;
+    private String endAddress;
 
     public UUID getRideId() { return rideId; }
     public void setRideId(UUID rideId) { this.rideId = rideId; }
@@ -32,8 +32,8 @@ public class RideDto {
     public void setSeatPriceCurrency(String seatPriceCurrency) { this.seatPriceCurrency = seatPriceCurrency; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public RideLocationDto getStartLocation() { return startLocation; }
-    public void setStartLocation(RideLocationDto startLocation) { this.startLocation = startLocation; }
-    public RideLocationDto getEndLocation() { return endLocation; }
-    public void setEndLocation(RideLocationDto endLocation) { this.endLocation = endLocation; }
+    public String getStartAddress() { return startAddress; }
+    public void setStartAddress(String startAddress) { this.startAddress = startAddress; }
+    public String getEndAddress() { return endAddress; }
+    public void setEndAddress(String endAddress) { this.endAddress = endAddress; }
 }

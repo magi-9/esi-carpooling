@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 import com.esi.ridebooking.bookings.BookingDto;
 
@@ -24,8 +27,8 @@ public class RideController {
     private RideService rideService;
 
     @PostMapping
-    public RideDto createRide(@RequestBody RideDto dto) {
-        return rideService.createRide(dto);
+    public UUID createRide(@RequestHeader(value = "Authorization", required = false) String authHeader, @RequestBody RideDto dto) {
+        return rideService.createRide(dto, authHeader).getRideId();
     }
 
     @GetMapping

@@ -1,11 +1,15 @@
 package com.esi.ridebooking.rides;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import com.esi.ridebooking.bookings.Booking;
 import com.esi.ridebooking.bookings.BookingDto;
@@ -23,17 +27,66 @@ public class RideService {
     @Autowired
     private BookingRepository bookingRepository;
 
-    public RideDto createRide(RideDto dto) {
+    @Autowired
+    private RestClient.Builder restClientBuilder;
+
+    @Value("${auth.service.url:http://localhost:8086}")
+    private String authServiceUrl;
+
+    @Value("${profile.service.url:http://localhost:8085}")
+    private String profileServiceUrl;
+
+    @Value("${geolocation.service.url:http://localhost:8088}")
+    private String geolocationServiceUrl;
+
+    public RideDto createRide(RideDto dto, String authHeader) {
+        // 1. Validate Auth Service (verify session)
+        restClientBuilder.build().get()
+                .uri(authServiceUrl + "/auth/validate")
+                .header("Authorization", authHeader)
+                .retrieve()
+                .toBodilessEntity();
+
+        // 2. Verify Driver Role
+        String[] roles = restClientBuilder.build().get()
+                .uri(authServiceUrl + "/auth/roles/" + dto.getDriverId())
+                .header("Authorization", authHeader)
+                .retrieve()
+                .body(String[].class);
+        
+        if (roles == null || !Arrays.asList(roles).contains("Driver")) {
+            throw new RuntimeException("User is not authorized as a Driver");
+        }
+
+        // 3. Verify Vehicle with Profile Service
+        restClientBuilder.build().get()
+                .uri(profileServiceUrl + "/profiles/" + dto.getDriverId() + "/vehicles")
+                .header("Authorization", authHeader)
+                .retrieve()
+                .toBodilessEntity();
+
+        // 4. Geocode addresses via Geolocation Service
+        Map<String, Object> startCoords = restClientBuilder.build().get()
+                .uri(geolocationServiceUrl + "/geocode?address=" + dto.getStartAddress())
+                .retrieve()
+                .body(Map.class);
+
+        Map<String, Object> endCoords = restClientBuilder.build().get()
+                .uri(geolocationServiceUrl + "/geocode?address=" + dto.getEndAddress())
+                .retrieve()
+                .body(Map.class);
+
+        // 5. Persist locations and ride
         RideLocation startLoc = new RideLocation();
-        startLoc.setLatitude(dto.getStartLocation().getLatitude());
-        startLoc.setLongitude(dto.getStartLocation().getLongitude());
-        startLoc.setDisplayAddress(dto.getStartLocation().getDisplayAddress());
+        startLoc.setLatitude((Double) startCoords.get("latitude"));
+        startLoc.setLongitude((Double) startCoords.get("longitude"));
+        startLoc.setDisplayAddress(dto.getStartAddress());
         rideLocationRepository.save(startLoc);
 
         RideLocation endLoc = new RideLocation();
-        endLoc.setLatitude(dto.getEndLocation().getLatitude());
-        endLoc.setLongitude(dto.getEndLocation().getLongitude());
-        endLoc.setDisplayAddress(dto.getEndLocation().getDisplayAddress());
+        endLoc.setLatitude((Double) endCoords.get("latitude"));
+        endLoc.setLongitude((Double) endCoords.get("longitude"));
+        endLoc.setDisplayAddress(dto.getEndAddress());
         rideLocationRepository.save(endLoc);
 
         Ride ride = new Ride();
@@ -75,30 +128,6 @@ public class RideService {
         ride.setSeatPriceCurrency(dto.getSeatPriceCurrency());
         ride.setStatus(dto.getStatus());
 
-        if (dto.getStartLocation() != null) {
-            RideLocation startLoc = ride.getStartLocation();
-            if (startLoc == null) {
-                startLoc = new RideLocation();
-            }
-            startLoc.setLatitude(dto.getStartLocation().getLatitude());
-            startLoc.setLongitude(dto.getStartLocation().getLongitude());
-            startLoc.setDisplayAddress(dto.getStartLocation().getDisplayAddress());
-            rideLocationRepository.save(startLoc);
-            ride.setStartLocation(startLoc);
-        }
-
-        if (dto.getEndLocation() != null) {
-            RideLocation endLoc = ride.getEndLocation();
-            if (endLoc == null) {
-                endLoc = new RideLocation();
-            }
-            endLoc.setLatitude(dto.getEndLocation().getLatitude());
-            endLoc.setLongitude(dto.getEndLocation().getLongitude());
-            endLoc.setDisplayAddress(dto.getEndLocation().getDisplayAddress());
-            rideLocationRepository.save(endLoc);
-            ride.setEndLocation(endLoc);
-        }
-
         return mapToDto(rideRepository.save(ride));
     }
 
@@ -135,21 +164,10 @@ public class RideService {
         dto.setStatus(ride.getStatus());
 
         if (ride.getStartLocation() != null) {
-            RideLocationDto startDto = new RideLocationDto();
-            startDto.setRideLocationId(ride.getStartLocation().getRideLocationId());
-            startDto.setLatitude(ride.getStartLocation().getLatitude());
-            startDto.setLongitude(ride.getStartLocation().getLongitude());
-            startDto.setDisplayAddress(ride.getStartLocation().getDisplayAddress());
-            dto.setStartLocation(startDto);
+            dto.setStartAddress(ride.getStartLocation().getDisplayAddress());
         }
-
         if (ride.getEndLocation() != null) {
-            RideLocationDto endDto = new RideLocationDto();
-            endDto.setRideLocationId(ride.getEndLocation().getRideLocationId());
-            endDto.setLatitude(ride.getEndLocation().getLatitude());
-            endDto.setLongitude(ride.getEndLocation().getLongitude());
-            endDto.setDisplayAddress(ride.getEndLocation().getDisplayAddress());
-            dto.setEndLocation(endDto);
+            dto.setEndAddress(ride.getEndLocation().getDisplayAddress());
         }
 
         return dto;

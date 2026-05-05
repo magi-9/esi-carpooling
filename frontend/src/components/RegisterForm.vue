@@ -61,6 +61,10 @@
       <!-- API Error Display -->
       <p v-if="apiError" class="error-text">{{ apiError }}</p>
     </form>
+    
+    <div class="login-link">
+      <p>Already have an account? <router-link to="/login">Login here</router-link></p>
+    </div>
   </div>
 </template>
 
@@ -179,5 +183,15 @@ button:disabled {
   color: red;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+}
+
+.login-link {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.login-link a {
+  color: #2196F3;
 }
 </style>

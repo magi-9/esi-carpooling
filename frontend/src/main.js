@@ -12,15 +12,7 @@ app.use(pinia);
 // Re-initialize the refresh timer if a token already exists on load
 const authStore = useAuthStore();
 if (authStore.token) {
-    // It's a good practice to validate the token on startup
-    import("@/services/authApi").then(({ default: api }) => {
-        api.get("/api/auth/validate")
-            .then(() => authStore.startRefreshTimer())
-            .catch((err) => {
-                console.error("Token validation failed:", err);
-                authStore.clearToken();
-            }); // Token was already expired
-    });
+    authStore.startRefreshTimer();
 }
 
 app.use(router);

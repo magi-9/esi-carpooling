@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth"; // Import the Pinia store
 
+import HomeView from "../views/HomeView.vue";
 import PaymentView from "../views/PaymentView.vue";
 import RefundView from "../views/RefundView.vue";
 import SearchView from "../views/SearchView.vue";
@@ -11,7 +12,8 @@ import RegisterForm from "../components/RegisterForm.vue";
 const routes = [
     {
         path: "/",
-        redirect: "/search",
+        name: "Home",
+        component: HomeView,
     },
     // --- Authentication Routes ---
     {

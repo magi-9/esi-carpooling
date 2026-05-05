@@ -28,8 +28,9 @@ authApi.interceptors.response.use(
         const authStore = useAuthStore();
 
         if (error.response && error.response.status === 401) {
-            // If the token is missing or expired, log the user out locally
-            authStore.logout();
+            // If the token is missing or expired, clear it locally
+            // Don't call logout() as the token is already invalid
+            authStore.clearToken();
             // Optional: Redirect to login page using Vue Router
             // router.push('/login');
         }

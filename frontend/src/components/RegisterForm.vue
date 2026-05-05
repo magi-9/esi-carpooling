@@ -1,5 +1,5 @@
 <template>
-  <n-card title="Create an Account" style="max-width: 400px; margin: 0 auto;">
+  <n-card title="Create an Account" style="max-width: 400px; margin: 0 auto">
     <n-form @submit.prevent="handleRegister" :show-label="false">
       <n-form-item label="Email">
         <n-input
@@ -29,31 +29,17 @@
             <n-checkbox value="DRIVER" label="Driver" />
           </n-space>
         </n-checkbox-group>
-        <n-alert
-          v-if="roleError"
-          type="warning"
-          :show-icon="false"
-          style="margin-top: 8px;"
-        >
+        <n-alert v-if="roleError" type="warning" :show-icon="false" style="margin-top: 8px">
           {{ roleError }}
         </n-alert>
       </n-form-item>
 
       <n-space vertical size="large">
-        <n-button
-          type="primary"
-          :loading="loading"
-          block
-          attr-type="submit"
-        >
+        <n-button type="primary" :loading="loading" block attr-type="submit">
           {{ loading ? 'Creating account...' : 'Register' }}
         </n-button>
 
-        <n-alert
-          v-if="apiError"
-          type="error"
-          :show-icon="false"
-        >
+        <n-alert v-if="apiError" type="error" :show-icon="false">
           {{ apiError }}
         </n-alert>
 
@@ -61,7 +47,7 @@
 
         <n-space justify="center">
           <n-text>Already have an account?</n-text>
-          <router-link to="/login" style="text-decoration: none;">
+          <router-link to="/login" style="text-decoration: none">
             <n-button text type="primary">Login here</n-button>
           </router-link>
         </n-space>
@@ -103,11 +89,10 @@ const handleRegister = async () => {
   loading.value = true;
   try {
     await authStore.register(email.value, password.value, selectedRoles.value);
-    
+
     // The store action automatically sets the JWT token on success.
     // Redirect the user to the home page.
-    router.push('/'); 
-    
+    router.push('/');
   } catch (error) {
     // 4. Handle Specific API Errors based on OpenAPI spec
     if (error.response) {

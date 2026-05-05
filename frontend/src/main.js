@@ -16,7 +16,10 @@ if (authStore.token) {
     import("@/services/authApi").then(({ default: api }) => {
         api.get("/api/auth/validate")
             .then(() => authStore.startRefreshTimer())
-            .catch(() => authStore.clearToken()); // Token was already expired
+            .catch((err) => {
+                console.error("Token validation failed:", err);
+                authStore.clearToken();
+            }); // Token was already expired
     });
 }
 

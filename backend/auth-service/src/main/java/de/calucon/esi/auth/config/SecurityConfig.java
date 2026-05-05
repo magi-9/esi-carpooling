@@ -1,5 +1,7 @@
 package de.calucon.esi.auth.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -9,6 +11,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import de.calucon.esi.auth.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +32,8 @@ public class SecurityConfig {
                 // 1. Disable CSRF (Cross-Site Request Forgery) because we are using stateless
                 // JWTs
                 .csrf(AbstractHttpConfigurer::disable)
+
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // 2. Set up our routing rules
                 .authorizeHttpRequests(auth -> auth
@@ -54,5 +61,27 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow your Vue frontend port
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+
+        // Allow all standard methods, crucially including OPTIONS
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // CRITICAL: You MUST explicitly allow the Authorization header so the browser
+        // sends the JWT
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        configuration.setAllowCredentials(true);
+
+        // Apply these rules to all endpoints in this microservice
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

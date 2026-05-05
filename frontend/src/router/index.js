@@ -1,14 +1,81 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import SearchView from '../views/SearchView.vue'
-import PaymentView from '../views/PaymentView.vue'
-import RefundView from '../views/RefundView.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../stores/auth"; // Import the Pinia store
+
+import PaymentView from "../views/PaymentView.vue";
+import RefundView from "../views/RefundView.vue";
+import SearchView from "../views/SearchView.vue";
+
+import LoginForm from "../components/LoginForm.vue";
+import RegisterForm from "../components/RegisterForm.vue";
 
 const routes = [
-  { path: '/', redirect: '/search' },
-  { path: '/search', component: SearchView },
-  { path: '/payments/new', component: PaymentView },
-  { path: '/payments/:paymentId', component: PaymentView },
-  { path: '/payments/:paymentId/refund', component: RefundView }
-]
+    {
+        path: "/",
+        redirect: "/search",
+    },
+    // --- Authentication Routes ---
+    {
+        path: "/login",
+        name: "Login",
+        component: LoginForm,
+        meta: { requiresGuest: true }, // Only visible to logged-out users
+    },
+    {
+        path: "/register",
+        name: "Register",
+        component: RegisterForm,
+        meta: { requiresGuest: true },
+    },
+    // --- Protected Routes ---
+    {
+        path: "/search",
+        name: "Search",
+        component: SearchView,
+        meta: { requiresAuth: true }, // Requires a valid JWT
+    },
+    {
+        path: "/payments/new",
+        name: "NewPayment",
+        component: PaymentView,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/payments/:paymentId",
+        name: "PaymentDetails",
+        component: PaymentView,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/payments/:paymentId/refund",
+        name: "RefundPayment",
+        component: RefundView,
+        meta: { requiresAuth: true },
+    },
+];
 
-export default createRouter({ history: createWebHistory(), routes })
+const router = createRouter({
+    history: createWebHistory(),
+    routes,
+});
+
+// --- Global Navigation Guard ---
+router.beforeEach((to, from, next) => {
+    // Always call useAuthStore inside the guard to ensure Pinia is initialized
+    const authStore = useAuthStore();
+    const isAuthenticated = authStore.isAuthenticated;
+
+    // 1. User is trying to access a protected route but is not logged in
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        next({ name: "Login" });
+    }
+    // 2. User is already logged in but tries to access Login or Register
+    else if (to.meta.requiresGuest && isAuthenticated) {
+        next({ name: "Search" }); // Redirect them to their main view
+    }
+    // 3. User is allowed to proceed normally
+    else {
+        next();
+    }
+});
+
+export default router;

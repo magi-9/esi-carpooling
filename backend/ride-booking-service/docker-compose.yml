@@ -24,7 +24,6 @@ services:
       - auth.service.url=http://auth-service:8086
     networks:
       - esi-network
-      - default
   # our second service
   postgre_db:
     # we do not need a build command here because we will pull an already built image from docker hub
@@ -44,5 +43,5 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - default
+      - esi-network
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,6 +81,22 @@ public class AuthenticationController {
         // We clear the context here as a formality.
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Logged out successfully");
+    }
+
+    @Operation(summary = "Refresh JWT Token", description = "Provides a new JWT token using an existing valid token.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully refreshed and returned new JWT token"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid token", content = @Content)
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            return ResponseEntity.ok(authenticationService.refreshToken());
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        }
     }
 
     @Operation(summary = "Validate Token", description = "Used by other microservices. If this returns 200 OK, the token provided in the Authorization header is valid.")

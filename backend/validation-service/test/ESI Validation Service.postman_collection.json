@@ -30,7 +30,7 @@
 							"key": "files",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/home/renan/Downloads/estonianid-ex.jpg"
+							"src": "estonianid-ex.jpg"
 						}
 					]
 				},
@@ -63,7 +63,7 @@
 							"key": "files",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/path/to/license.jpg"
+							"src": "license.jpg"
 						}
 					]
 				},
@@ -150,17 +150,15 @@
 							"key": "files",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/home/renan/Downloads/estonianid-ex.jpg"
+							"src": "estonianid-ex.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/validation",
-					"protocol": "http",
+					"raw": "{{BASE_URL}}/validation",
 					"host": [
-						"localhost"
+						"{{BASE_URL}}"
 					],
-					"port": "8080",
 					"path": [
 						"validation"
 					]
@@ -191,17 +189,15 @@
 							"key": "files",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/home/renan/Downloads/estonianid-ex.jpg"
+							"src": "estonianid-ex.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/validation",
-					"protocol": "http",
+					"raw": "{{BASE_URL}}/validation",
 					"host": [
-						"localhost"
+						"{{BASE_URL}}"
 					],
-					"port": "8080",
 					"path": [
 						"validation"
 					]
@@ -232,17 +228,15 @@
 							"key": "files",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/home/renan/Downloads/estonianid-ex.jpg"
+							"src": "estonianid-ex.jpg"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8080/validation",
-					"protocol": "http",
+					"raw": "{{BASE_URL}}/validation",
 					"host": [
-						"localhost"
+						"{{BASE_URL}}"
 					],
-					"port": "8080",
 					"path": [
 						"validation"
 					]
@@ -466,7 +460,7 @@
 	"variable": [
 		{
 			"key": "BASE_URL",
-			"value": "http://localhost:8080"
+			"value": "http://localhost:8087"
 		},
 		{
 			"key": "request_id",

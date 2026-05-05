@@ -6,7 +6,7 @@ services:
     container_name: esi-validation-service
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - 8087:8080
     depends_on:
       - postgres_db
     environment:

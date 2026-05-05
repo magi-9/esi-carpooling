@@ -1,88 +1,89 @@
 <template>
-  <div style="padding:24px;max-width:800px;margin:0 auto;text-align:center">
-    <h1 style="color:#2c3e50;margin-bottom:16px">Welcome to Carpooling</h1>
-    <p style="color:#666;font-size:18px;margin-bottom:32px">
-      Find rides, share journeys, and travel together with our carpooling platform.
-    </p>
+  <n-space vertical size="large" style="padding: 24px; max-width: 800px; margin: 0 auto;">
+    <n-space vertical align="center" justify="center">
+      <n-h1 style="color: #2c3e50;">Welcome to Carpooling</n-h1>
+      <n-text style="color: #666; font-size: 18px;">
+        Find rides, share journeys, and travel together with our carpooling platform.
+      </n-text>
+    </n-space>
 
-    <div style="display:flex;gap:20px;justify-content:center;margin-bottom:48px">
-      <div style="background:#f8f9fa;padding:24px;border-radius:8px;flex:1;max-width:300px">
-        <h3 style="color:#2c3e50;margin-bottom:12px">🚗 Find a Ride</h3>
-        <p style="color:#666;margin-bottom:16px">
-          Search for available rides in your area and book your seat.
-        </p>
-        <RouterLink
-          to="/search"
-          style="display:inline-block;background:#2196F3;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Search Rides
-        </RouterLink>
-      </div>
+    <n-space justify="center" style="margin-bottom: 48px;">
+      <n-card style="flex: 1; max-width: 300px;" title="🚗 Find a Ride" embedded>
+        <n-space vertical>
+          <n-text style="color: #666;">
+            Search for available rides in your area and book your seat.
+          </n-text>
+          <router-link to="/search" style="text-decoration: none;">
+            <n-button type="primary" block>Search Rides</n-button>
+          </router-link>
+        </n-space>
+      </n-card>
 
-      <div style="background:#f8f9fa;padding:24px;border-radius:8px;flex:1;max-width:300px">
-        <h3 style="color:#2c3e50;margin-bottom:12px">💰 Make Payments</h3>
-        <p style="color:#666;margin-bottom:16px">
-          Secure payment processing for your carpooling transactions.
-        </p>
-        <RouterLink
-          v-if="authStore.isAuthenticated"
-          to="/payments/new"
-          style="display:inline-block;background:#4CAF50;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          New Payment
-        </RouterLink>
-        <RouterLink
-          v-else
-          to="/login"
-          style="display:inline-block;background:#4CAF50;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Login to Pay
-        </RouterLink>
-      </div>
-    </div>
+      <n-card style="flex: 1; max-width: 300px;" title="💰 Make Payments" embedded>
+        <n-space vertical>
+          <n-text style="color: #666;">
+            Secure payment processing for your carpooling transactions.
+          </n-text>
+          <router-link
+            v-if="authStore.isAuthenticated"
+            to="/payments/new"
+            style="text-decoration: none;"
+          >
+            <n-button type="success" block>New Payment</n-button>
+          </router-link>
+          <router-link
+            v-else
+            to="/login"
+            style="text-decoration: none;"
+          >
+            <n-button type="success" block>Login to Pay</n-button>
+          </router-link>
+        </n-space>
+      </n-card>
+    </n-space>
 
-    <div v-if="!authStore.isAuthenticated" style="background:#e3f2fd;padding:24px;border-radius:8px;margin-bottom:32px">
-      <h3 style="color:#2c3e50;margin-bottom:12px">Join Our Community</h3>
-      <p style="color:#666;margin-bottom:16px">
-        Create an account to start carpooling and connect with drivers and passengers.
-      </p>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <RouterLink
-          to="/register"
-          style="background:#2196F3;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Register Now
-        </RouterLink>
-        <RouterLink
-          to="/login"
-          style="background:#666;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Sign In
-        </RouterLink>
-      </div>
-    </div>
+    <n-card
+      v-if="!authStore.isAuthenticated"
+      style="background: #e3f2fd;"
+      title="Join Our Community"
+      embedded
+    >
+      <n-space vertical>
+        <n-text style="color: #666;">
+          Create an account to start carpooling and connect with drivers and passengers.
+        </n-text>
+        <n-space justify="center">
+          <router-link to="/register" style="text-decoration: none;">
+            <n-button type="primary">Register Now</n-button>
+          </router-link>
+          <router-link to="/login" style="text-decoration: none;">
+            <n-button>Sign In</n-button>
+          </router-link>
+        </n-space>
+      </n-space>
+    </n-card>
 
-    <div v-else style="background:#e8f5e8;padding:24px;border-radius:8px">
-      <h3 style="color:#2c3e50;margin-bottom:12px">Welcome back!</h3>
-      <p style="color:#666;margin-bottom:16px">
-        Ready to find your next ride or manage your payments?
-      </p>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <RouterLink
-          to="/search"
-          style="background:#2196F3;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Find Rides
-        </RouterLink>
-        <RouterLink
-          to="/payments/new"
-          style="background:#4CAF50;color:white;padding:12px 24px;text-decoration:none;border-radius:4px"
-        >
-          Make Payment
-        </RouterLink>
-      </div>
-    </div>
-  </div>
+    <n-card
+      v-else
+      style="background: #e8f5e8;"
+      title="Welcome back!"
+      embedded
+    >
+      <n-space vertical>
+        <n-text style="color: #666;">
+          Ready to find your next ride or manage your payments?
+        </n-text>
+        <n-space justify="center">
+          <router-link to="/search" style="text-decoration: none;">
+            <n-button type="primary">Find Rides</n-button>
+          </router-link>
+          <router-link to="/payments/new" style="text-decoration: none;">
+            <n-button type="success">Make Payment</n-button>
+          </router-link>
+        </n-space>
+      </n-space>
+    </n-card>
+  </n-space>
 </template>
 
 <script setup>

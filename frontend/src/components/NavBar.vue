@@ -1,32 +1,47 @@
 <template>
-  <nav style="background:#2c3e50;padding:12px 24px;display:flex;gap:20px;align-items:center">
-    <RouterLink to="/" style="color:white;font-weight:bold;font-size:18px;text-decoration:none">Carpooling</RouterLink>
+  <n-layout-header style="background: #2c3e50; padding: 0 24px; height: 64px;">
+    <n-space align="center" justify="space-between" style="height: 100%;">
+      <n-space align="center">
+        <router-link to="/" style="text-decoration: none;">
+          <n-text style="color: white; font-weight: bold; font-size: 18px;">Carpooling</n-text>
+        </router-link>
 
-    <!-- Show navigation links only when authenticated -->
-    <div v-if="authStore.isAuthenticated" style="display:flex;gap:20px">
-      <RouterLink to="/search" style="color:#ecf0f1;text-decoration:none">Search Rides</RouterLink>
-      <RouterLink to="/payments/new" style="color:#ecf0f1;text-decoration:none">New Payment</RouterLink>
-    </div>
+        <n-space v-if="isAuthenticated" align="center">
+          <router-link to="/search" style="text-decoration: none;">
+            <n-button text style="color: #ecf0f1;">Search Rides</n-button>
+          </router-link>
+          <router-link to="/payments/new" style="text-decoration: none;">
+            <n-button text style="color: #ecf0f1;">New Payment</n-button>
+          </router-link>
+        </n-space>
+      </n-space>
 
-    <!-- Authentication buttons -->
-    <div style="margin-left:auto;display:flex;gap:10px">
-      <template v-if="!authStore.isAuthenticated">
-        <RouterLink to="/login" style="color:#ecf0f1;text-decoration:none;padding:8px 16px;border:1px solid #ecf0f1;border-radius:4px">Login</RouterLink>
-        <RouterLink to="/register" style="color:#ecf0f1;text-decoration:none;padding:8px 16px;background:#3498db;border-radius:4px">Register</RouterLink>
-      </template>
-      <template v-else>
-        <button @click="handleLogout" style="color:#ecf0f1;background:none;border:1px solid #ecf0f1;padding:8px 16px;border-radius:4px;cursor:pointer">Logout</button>
-      </template>
-    </div>
-  </nav>
+      <n-space align="center">
+        <template v-if="!isAuthenticated">
+          <router-link to="/login" style="text-decoration: none;">
+            <n-button ghost style="color: #ecf0f1; border-color: rgba(255,255,255,0.35);">Login</n-button>
+          </router-link>
+          <router-link to="/register" style="text-decoration: none;">
+            <n-button type="primary">Register</n-button>
+          </router-link>
+        </template>
+        <template v-else>
+          <n-button ghost style="color: #ecf0f1; border-color: rgba(255,255,255,0.35);" @click="handleLogout">Logout</n-button>
+        </template>
+      </n-space>
+    </n-space>
+  </n-layout-header>
 </template>
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const { isAuthenticated } = storeToRefs(authStore)
 
 const handleLogout = async () => {
   try {

@@ -1,77 +1,79 @@
 <template>
-  <div class="register-container">
-    <h2>Create an Account</h2>
-    
-    <form @submit.prevent="handleRegister">
-      <!-- Email Input -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          id="email" 
-          v-model="email" 
-          type="email" 
+  <n-card title="Create an Account" style="max-width: 400px; margin: 0 auto;">
+    <n-form @submit.prevent="handleRegister" :show-label="false">
+      <n-form-item label="Email">
+        <n-input
+          v-model:value="email"
+          type="email"
           placeholder="your@email.com"
-          required 
+          :disabled="loading"
+          clearable
         />
-      </div>
+      </n-form-item>
 
-      <!-- Password Input -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          id="password" 
-          v-model="password" 
-          type="password" 
-          minlength="8" 
+      <n-form-item label="Password">
+        <n-input
+          v-model:value="password"
+          type="password"
           placeholder="Min. 8 characters"
-          required 
+          :disabled="loading"
+          show-password-toggle
+          :minlength="8"
         />
-      </div>
+      </n-form-item>
 
-      <!-- Roles Selection -->
-      <div class="form-group">
-        <label>I want to register as a: (Select at least one)</label>
-        <div class="checkbox-group">
-          <label>
-            <input 
-              type="checkbox" 
-              value="PASSENGER" 
-              v-model="selectedRoles" 
-            />
-            Passenger
-          </label>
-          <label>
-            <input 
-              type="checkbox" 
-              value="DRIVER" 
-              v-model="selectedRoles" 
-            />
-            Driver
-          </label>
-        </div>
-        <!-- Client-side validation error for roles -->
-        <p v-if="roleError" class="error-text">{{ roleError }}</p>
-      </div>
+      <n-form-item label="I want to register as: (Select at least one)">
+        <n-checkbox-group v-model:value="selectedRoles" :disabled="loading">
+          <n-space>
+            <n-checkbox value="PASSENGER" label="Passenger" />
+            <n-checkbox value="DRIVER" label="Driver" />
+          </n-space>
+        </n-checkbox-group>
+        <n-alert
+          v-if="roleError"
+          type="warning"
+          :show-icon="false"
+          style="margin-top: 8px;"
+        >
+          {{ roleError }}
+        </n-alert>
+      </n-form-item>
 
-      <!-- Submit Button -->
-      <button type="submit" :disabled="loading">
-        {{ loading ? 'Creating account...' : 'Register' }}
-      </button>
+      <n-space vertical size="large">
+        <n-button
+          type="primary"
+          :loading="loading"
+          block
+          attr-type="submit"
+        >
+          {{ loading ? 'Creating account...' : 'Register' }}
+        </n-button>
 
-      <!-- API Error Display -->
-      <p v-if="apiError" class="error-text">{{ apiError }}</p>
-    </form>
-    
-    <div class="login-link">
-      <p>Already have an account? <router-link to="/login">Login here</router-link></p>
-    </div>
-  </div>
+        <n-alert
+          v-if="apiError"
+          type="error"
+          :show-icon="false"
+        >
+          {{ apiError }}
+        </n-alert>
+
+        <n-divider />
+
+        <n-space justify="center">
+          <n-text>Already have an account?</n-text>
+          <router-link to="/login" style="text-decoration: none;">
+            <n-button text type="primary">Login here</n-button>
+          </router-link>
+        </n-space>
+      </n-space>
+    </n-form>
+  </n-card>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; // Assuming the Vite alias is fixed
+import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -103,8 +105,8 @@ const handleRegister = async () => {
     await authStore.register(email.value, password.value, selectedRoles.value);
     
     // The store action automatically sets the JWT token on success.
-    // Redirect the user to your main application view.
-    router.push('/search'); 
+    // Redirect the user to the home page.
+    router.push('/'); 
     
   } catch (error) {
     // 4. Handle Specific API Errors based on OpenAPI spec
@@ -124,74 +126,3 @@ const handleRegister = async () => {
   }
 };
 </script>
-
-<style scoped>
-.register-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-.form-group input[type="email"],
-.form-group input[type="password"] {
-  width: 100%;
-  padding: 0.5rem;
-  box-sizing: border-box;
-}
-
-.checkbox-group {
-  display: flex;
-  gap: 1rem;
-}
-
-.checkbox-group label {
-  font-weight: normal;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-button:disabled {
-  background-color: #a5d6a7;
-  cursor: not-allowed;
-}
-
-.error-text {
-  color: red;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
-.login-link {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.login-link a {
-  color: #2196F3;
-}
-</style>

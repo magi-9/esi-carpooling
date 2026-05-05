@@ -8,7 +8,9 @@
           placeholder="your@email.com"
           :disabled="loading"
           clearable
-          autocomplete="username"
+          :input-props="{
+            autocomplete: 'email'
+          }"
         />
       </n-form-item>
 
@@ -19,7 +21,9 @@
           placeholder="Enter your password"
           :disabled="loading"
           show-password-toggle
-          autocomplete="current-password"
+          :input-props="{
+            autocomplete: 'current-password'
+          }"
         />
       </n-form-item>
 

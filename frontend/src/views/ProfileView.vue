@@ -5,113 +5,24 @@
       <n-h1>My Profile</n-h1>
 
       <!-- Profile Card -->
-      <n-card>
-        <n-space vertical>
-          <n-h2>Personal Information</n-h2>
-
-          <!-- Loading State -->
-          <n-spin v-if="loading" />
-
-          <!-- Profile Form -->
-          <n-form v-if="!loading" :model="profileForm" :rules="profileRules">
-            <n-form-item label="First Name" path="firstName">
-              <n-input
-                v-model:value="profileForm.firstName"
-                placeholder="Enter first name"
-                @blur="saveProfileChanges"
-              />
-            </n-form-item>
-
-            <n-form-item label="Last Name" path="lastName">
-              <n-input
-                v-model:value="profileForm.lastName"
-                placeholder="Enter last name"
-                @blur="saveProfileChanges"
-              />
-            </n-form-item>
-
-            <n-form-item label="Phone Number" path="phoneNumber">
-              <n-input
-                v-model:value="profileForm.phoneNumber"
-                placeholder="Enter phone number"
-                @blur="saveProfileChanges"
-              />
-            </n-form-item>
-
-            <n-form-item label="Driver Status">
-              <n-tag :type="getStatusColor(profile.driverStatus)">
-                {{ profile.driverStatus || 'NONE' }}
-              </n-tag>
-            </n-form-item>
-          </n-form>
-
-          <!-- Messages -->
-          <div v-if="successMessage" class="success-message">
-            <n-alert type="success" closable>{{ successMessage }}</n-alert>
-          </div>
-          <div v-if="errorMessage" class="error-message">
-            <n-alert type="error" closable>{{ errorMessage }}</n-alert>
-          </div>
-        </n-space>
-      </n-card>
+      <ProfileCard
+        :profileForm="profileForm"
+        :profileRules="profileRules"
+        :profile="profile"
+        :loading="loading"
+        :successMessage="successMessage"
+        :errorMessage="errorMessage"
+        :saveProfileChanges="saveProfileChanges"
+      />
 
       <!-- Vehicles Section -->
-      <n-card>
-        <n-space vertical>
-          <n-h2>Vehicles</n-h2>
-
-          <!-- Vehicles List -->
-          <div v-if="vehicles.length > 0" class="vehicles-list">
-            <n-space vertical>
-              <div v-for="vehicle in vehicles" :key="vehicle.vehicleId" class="vehicle-item">
-                <n-card size="small">
-                  <n-space>
-                    <div>
-                      <div>
-                        <strong>{{ vehicle.make }} {{ vehicle.model }}</strong>
-                      </div>
-                      <div class="license-plate">
-                        License Plate:
-                        {{ vehicle.licensePlate }}
-                      </div>
-                    </div>
-                    <div>
-                      <n-tag v-if="vehicle.isVerified" type="success">✓ Verified</n-tag>
-                      <n-tag v-else type="warning">Pending</n-tag>
-                    </div>
-                  </n-space>
-                </n-card>
-              </div>
-            </n-space>
-          </div>
-
-          <div v-else class="no-vehicles">
-            <n-empty description="No vehicles added yet" />
-          </div>
-
-          <!-- Add Vehicle Form -->
-          <n-divider />
-          <n-h3>Add New Vehicle</n-h3>
-
-          <n-form :model="vehicleForm" :rules="vehicleRules">
-            <n-form-item label="Make" path="make">
-              <n-input v-model:value="vehicleForm.make" placeholder="e.g., Toyota" />
-            </n-form-item>
-
-            <n-form-item label="Model" path="model">
-              <n-input v-model:value="vehicleForm.model" placeholder="e.g., Camry" />
-            </n-form-item>
-
-            <n-form-item label="License Plate" path="licensePlate">
-              <n-input v-model:value="vehicleForm.licensePlate" placeholder="e.g., ABC-1234" />
-            </n-form-item>
-
-            <n-button type="primary" @click="addNewVehicle" :loading="addingVehicle">
-              Add Vehicle
-            </n-button>
-          </n-form>
-        </n-space>
-      </n-card>
+      <VehiclesSection
+        :vehicles="vehicles"
+        :vehicleForm="vehicleForm"
+        :vehicleRules="vehicleRules"
+        :addingVehicle="addingVehicle"
+        :addNewVehicle="addNewVehicle"
+      />
     </n-space>
   </div>
 </template>
@@ -121,22 +32,9 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { getProfile, updateProfile, getVehicles, addVehicle } from '@/api/profileApi';
-import {
-  NSpace,
-  NCard,
-  NH1,
-  NH2,
-  NH3,
-  NForm,
-  NFormItem,
-  NInput,
-  NButton,
-  NTag,
-  NSpin,
-  NEmpty,
-  NDivider,
-  NAlert
-} from 'naive-ui';
+import ProfileCard from '@/components/ProfileCard.vue';
+import VehiclesSection from '@/components/VehiclesSection.vue';
+import { NSpace, NH1 } from 'naive-ui';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -155,10 +53,17 @@ const profile = ref({
   driverStatus: 'NONE'
 });
 
-const profileForm = ref({
+const originalProfile = ref({
   firstName: '',
   lastName: '',
   phoneNumber: ''
+});
+
+const profileForm = ref({
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+  email: ''
 });
 
 const vehicles = ref([]);
@@ -172,12 +77,12 @@ const vehicleForm = ref({
 // Validation Rules
 const profileRules = {
   firstName: {
-    required: true,
+    required: false,
     message: 'First name is required',
     trigger: 'blur'
   },
   lastName: {
-    required: true,
+    required: false,
     message: 'Last name is required',
     trigger: 'blur'
   }
@@ -202,16 +107,6 @@ const vehicleRules = {
 };
 
 // Methods
-const getStatusColor = (status) => {
-  const colors = {
-    VERIFIED: 'success',
-    PENDING: 'warning',
-    REJECTED: 'error',
-    NONE: 'default'
-  };
-  return colors[status] || 'default';
-};
-
 const fetchProfile = async () => {
   try {
     loading.value = true;
@@ -223,10 +118,20 @@ const fetchProfile = async () => {
 
     const response = await getProfile(userId);
     profile.value = response.data;
+    profile.value.driverStatus = authStore.getRolesFromToken(authStore.token).includes('DRIVER')
+      ? 'VERIFIED'
+      : 'NONE';
     profileForm.value = {
       firstName: response.data.firstName,
       lastName: response.data.lastName,
-      phoneNumber: response.data.phoneNumber || ''
+      phoneNumber: response.data.phoneNumber || '',
+      email: authStore.getEmailFromToken(authStore.token) || ''
+    };
+
+    originalProfile.value = {
+      firstName: profileForm.value.firstName,
+      lastName: profileForm.value.lastName,
+      phoneNumber: profileForm.value.phoneNumber
     };
 
     // Fetch vehicles
@@ -247,6 +152,15 @@ const fetchProfile = async () => {
 };
 
 const saveProfileChanges = async () => {
+  // Check if any values have changed
+  if (
+    profileForm.value.firstName === originalProfile.value.firstName &&
+    profileForm.value.lastName === originalProfile.value.lastName &&
+    profileForm.value.phoneNumber === originalProfile.value.phoneNumber
+  ) {
+    return; // No changes, skip update
+  }
+
   try {
     const userId = authStore.currentUserId;
 
@@ -259,6 +173,13 @@ const saveProfileChanges = async () => {
     profile.value.firstName = profileForm.value.firstName;
     profile.value.lastName = profileForm.value.lastName;
     profile.value.phoneNumber = profileForm.value.phoneNumber;
+
+    // Update original values
+    originalProfile.value = {
+      firstName: profileForm.value.firstName,
+      lastName: profileForm.value.lastName,
+      phoneNumber: profileForm.value.phoneNumber
+    };
 
     successMessage.value = 'Profile updated successfully';
     setTimeout(() => {

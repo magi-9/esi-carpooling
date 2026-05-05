@@ -204,7 +204,19 @@ class AuthenticationIntegrationTest {
     }
 
     // ==========================================
-    // 6. TEST LOGOUT
+    // 6. TEST TOKEN REFRESH
+    // ==========================================
+
+    @Test
+    void testRefreshTokenEndpointWithValidToken() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh")
+                .header("Authorization", "Bearer " + validJwtToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists());
+    }
+
+    // ==========================================
+    // 7. TEST LOGOUT
     // ==========================================
 
     @Test

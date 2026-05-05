@@ -45,4 +45,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handlePaymentException(com.esi.ridebooking.exception.PaymentException ex) {
         return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(ex.getMessage());
     }
+
+    @ExceptionHandler(com.esi.ridebooking.exception.ServiceUnavailableException.class)
+    public ResponseEntity<String> handleServiceUnavailable(com.esi.ridebooking.exception.ServiceUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
 }

@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+
+import com.esi.ridebooking.exception.ServiceUnavailableException;
 
 import com.esi.ridebooking.bookings.Booking;
 import com.esi.ridebooking.bookings.BookingDto;
 import com.esi.ridebooking.bookings.BookingRepository;
-import com.esi.ridebooking.bookings.CreateBookingRequest;
 import com.esi.ridebooking.util.JwtService;
 
 @Service
@@ -50,41 +52,55 @@ public class RideService {
 
 	public RideDto createRide(CreateRideRequest request, String authHeader) {
 		// 1. Validate Auth Service (verify session and Driver role)
-		// First check token is valid
-		restClientBuilder.build().get()
-				.uri(authServiceUrl + "/auth/validate")
-				.header("Authorization", authHeader)
-				.retrieve()
-				.toBodilessEntity();
+		try {
+			// First check token is valid
+			restClientBuilder.build().get()
+					.uri(authServiceUrl + "/auth/validate")
+					.header("Authorization", authHeader)
+					.retrieve()
+					.toBodilessEntity();
 
-		// Then check user has DRIVER role (returns 200 if has role, 403 if not)
-		restClientBuilder.build().get()
-				.uri(authServiceUrl + "/auth/validate/role/DRIVER")
-				.header("Authorization", authHeader)
-				.retrieve()
-				.toBodilessEntity();
+			// Then check user has DRIVER role (returns 200 if has role, 403 if not)
+			restClientBuilder.build().get()
+					.uri(authServiceUrl + "/auth/validate/role/DRIVER")
+					.header("Authorization", authHeader)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (ResourceAccessException e) {
+			throw new ServiceUnavailableException("Auth service unavailable", e);
+		}
 
 		// 2. Extract user ID from JWT token locally (instead of trusting request body)
 		UUID currentUserId = jwtService.extractUserId(authHeader);
 
 		// 3. Verify Vehicle with Profile Service
 		// Check that the vehicle belongs to the driver
-		restClientBuilder.build().get()
-				.uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles/" + request.getVehicleId())
-				.header("Authorization", authHeader)
-				.retrieve()
-				.toBodilessEntity();
+		try {
+			restClientBuilder.build().get()
+					.uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles/" + request.getVehicleId())
+					.header("Authorization", authHeader)
+					.retrieve()
+					.toBodilessEntity();
+		} catch (ResourceAccessException e) {
+			throw new ServiceUnavailableException("Profile service unavailable", e);
+		}
 
 		// 4. Geocode addresses via Geolocation Service
-		Map<String, Object> startCoords = restClientBuilder.build().get()
-				.uri(geolocationServiceUrl + "/geocode?address=" + request.getStartAddress())
-				.retrieve()
-				.body(Map.class);
+		Map<String, Object> startCoords;
+		Map<String, Object> endCoords;
+		try {
+			startCoords = restClientBuilder.build().get()
+					.uri(geolocationServiceUrl + "/geocode?address=" + request.getStartAddress())
+					.retrieve()
+					.body(Map.class);
 
-		Map<String, Object> endCoords = restClientBuilder.build().get()
-				.uri(geolocationServiceUrl + "/geocode?address=" + request.getEndAddress())
-				.retrieve()
-				.body(Map.class);
+			endCoords = restClientBuilder.build().get()
+					.uri(geolocationServiceUrl + "/geocode?address=" + request.getEndAddress())
+					.retrieve()
+					.body(Map.class);
+		} catch (ResourceAccessException e) {
+			throw new ServiceUnavailableException("Geolocation service unavailable", e);
+		}
 
 		// 5. Persist locations and ride
 		RideLocation startLoc = new RideLocation();
@@ -186,7 +202,7 @@ public class RideService {
 	public void deleteRide(UUID rideId) {
 		Ride ride = rideRepository.findById(rideId)
 				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
-		
+
 		// 1. Cancel all bookings for this ride
 		List<Booking> bookings = bookingRepository.findByRideRideId(rideId);
 		for (Booking booking : bookings) {
@@ -195,14 +211,14 @@ public class RideService {
 				bookingRepository.save(booking);
 			}
 		}
-		
+
 		// 2. Mark ride as CANCELLED (soft delete) instead of hard deleting
 		// This preserves the ride reference for historical bookings
 		ride.setStatus("CANCELLED");
 		rideRepository.save(ride);
 	}
 
-	public BookingDto createBooking(UUID rideId, CreateBookingRequest request, String authHeader) {
+	public BookingDto createBooking(UUID rideId, String authHeader) {
 		// 1. Validate passenger identity via Auth Service
 		restClientBuilder.build().get()
 				.uri(authServiceUrl + "/auth/validate")
@@ -221,14 +237,15 @@ public class RideService {
 			throw new IllegalArgumentException("No seats available for this ride");
 		}
 
-		// 4. Check for duplicate booking - prevent same passenger booking same ride multiple times
+		// 4. Check for duplicate booking - prevent same passenger booking same ride
+		// multiple times
 		List<Booking> existingBookings = bookingRepository.findByRideRideId(rideId);
 		boolean alreadyBooked = existingBookings.stream()
 				.filter(b -> passengerId.equals(b.getPassengerId()))
 				.filter(b -> !"CANCELLED".equals(b.getStatus()))
 				.findAny()
 				.isPresent();
-		
+
 		if (alreadyBooked) {
 			throw new IllegalArgumentException("Passenger already has a booking for this ride");
 		}
@@ -260,8 +277,16 @@ public class RideService {
 			savedBooking.setPaymentId(UUID.fromString((String) paymentResponse.get("paymentId")));
 			bookingRepository.save(savedBooking);
 
+		} catch (ResourceAccessException e) {
+			// Payment service unreachable - rollback and rethrow as 503
+			bookingRepository.delete(savedBooking);
+			throw new ServiceUnavailableException("Payment service unavailable", e);
+		} catch (com.esi.ridebooking.exception.PaymentException e) {
+			// Payment rejected/invalid - rollback and rethrow
+			bookingRepository.delete(savedBooking);
+			throw e;
 		} catch (Exception e) {
-			// Payment failed - rollback by deleting pending booking
+			// Other errors - rollback and throw payment error
 			bookingRepository.delete(savedBooking);
 			throw new com.esi.ridebooking.exception.PaymentException("Payment authorization failed: " + e.getMessage());
 		}

@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.esi.ridebooking.bookings.BookingDto;
-import com.esi.ridebooking.bookings.CreateBookingRequest;
 
 @RestController
 @RequestMapping("/rides")
@@ -70,7 +69,7 @@ public class RideController {
 
     @PostMapping("/{rideId}/bookings")
     @ResponseStatus(HttpStatus.CREATED)
-    public UUID createBooking(@PathVariable UUID rideId, @RequestHeader(value = "Authorization", required = false) String authHeader, @RequestBody CreateBookingRequest request) {
-        return rideService.createBooking(rideId, request, authHeader).getBookingId();
+    public UUID createBooking(@PathVariable UUID rideId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        return rideService.createBooking(rideId, authHeader).getBookingId();
     }
 }

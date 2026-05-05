@@ -5,15 +5,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.esi.ridebooking.bookings.BookingDto;
-import com.esi.ridebooking.bookings.CreateBookingRequest;
 import com.esi.ridebooking.exception.PaymentException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -21,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(RideController.class)
 public class RideControllerTest {
@@ -60,13 +62,14 @@ public class RideControllerTest {
 				.header("Authorization", "Bearer valid-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(rideJson))
-				.andExpect(status().isCreated());
+				.andExpect(status().isCreated())
+				.andExpect(content().string("\"" + responseDto.getRideId().toString() + "\""));
 	}
 
 	@Test
 	void createRide_ErrorCase() throws Exception {
 		when(rideService.createRide(any(CreateRideRequest.class), anyString()))
-				.thenThrow(new RuntimeException("User is not authorized as a Driver"));
+				.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "User is not authorized as a Driver"));
 
 		mockMvc.perform(post("/rides")
 				.header("Authorization", "Bearer invalid-token")
@@ -82,7 +85,7 @@ public class RideControllerTest {
 						    "endAddress": "B"
 						}
 						"""))
-				.andExpect(status().isInternalServerError());
+				.andExpect(status().isUnauthorized());
 	}
 
 	@Test
@@ -97,14 +100,11 @@ public class RideControllerTest {
 		responseDto.setPassengerId(passengerId);
 		responseDto.setStatus("CONFIRMED");
 
-		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString())).thenReturn(responseDto);
-
-		String bookingJson = "{}";
+		when(rideService.createBooking(eq(rideId), anyString()))
+				.thenReturn(responseDto);
 
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
-				.header("Authorization", "Bearer valid-token")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(bookingJson))
+				.header("Authorization", "Bearer valid-token"))
 				.andExpect(status().isCreated());
 	}
 
@@ -112,15 +112,11 @@ public class RideControllerTest {
 	void createBooking_NoSeatsAvailable() throws Exception {
 		UUID rideId = UUID.randomUUID();
 
-		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
+		when(rideService.createBooking(eq(rideId), anyString()))
 				.thenThrow(new IllegalArgumentException("No seats available for this ride"));
 
-		String bookingJson = "{}";
-
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
-				.header("Authorization", "Bearer valid-token")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(bookingJson))
+				.header("Authorization", "Bearer valid-token"))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -128,15 +124,11 @@ public class RideControllerTest {
 	void createBooking_PaymentFailure() throws Exception {
 		UUID rideId = UUID.randomUUID();
 
-		when(rideService.createBooking(eq(rideId), any(CreateBookingRequest.class), anyString()))
+		when(rideService.createBooking(eq(rideId), anyString()))
 				.thenThrow(new PaymentException("Payment authorization failed"));
 
-		String bookingJson = "{}";
-
 		mockMvc.perform(post("/rides/{rideId}/bookings", rideId)
-				.header("Authorization", "Bearer valid-token")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(bookingJson))
+				.header("Authorization", "Bearer valid-token"))
 				.andExpect(status().isPaymentRequired());
 	}
 }

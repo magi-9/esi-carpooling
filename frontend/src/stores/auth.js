@@ -4,14 +4,77 @@ import { defineStore } from "pinia";
 export const useAuthStore = defineStore("auth", {
     state: () => ({
         token: localStorage.getItem("jwt_token") || null,
+        userId: localStorage.getItem("user_id") || null,
         refreshTimer: null,
     }),
 
     getters: {
         isAuthenticated: (state) => !!state.token,
+        currentUserId: (state) => state.userId,
     },
 
     actions: {
+        // Helper to safely decode JWT payload
+        decodeToken(token) {
+            try {
+                // JWT format: header.payload.signature
+                const parts = token.split(".");
+                if (parts.length !== 3) {
+                    throw new Error("Invalid token format: expected 3 parts");
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                return payload;
+            } catch (error) {
+                console.error("Failed to decode JWT:", error.message);
+                return null;
+            }
+        },
+
+        // Extract userId from decoded JWT token
+        decodeUserId(token) {
+            const payload = this.decodeToken(token);
+            if (!payload) {
+                return null;
+            }
+
+            // The 'sub' (subject) claim contains the user ID
+            const userId = payload.sub;
+
+            if (!userId) {
+                console.warn(
+                    "Warning: Token does not contain 'sub' claim with userId",
+                );
+                return null;
+            }
+
+            return userId;
+        },
+
+        // Get email from token
+        getEmailFromToken(token) {
+            const payload = this.decodeToken(token);
+            return payload?.email || null;
+        },
+
+        // Get roles from token
+        getRolesFromToken(token) {
+            const payload = this.decodeToken(token);
+            return payload?.roles || [];
+        },
+
+        // Check if token is expired
+        isTokenExpired(token) {
+            const payload = this.decodeToken(token);
+            if (!payload || !payload.exp) {
+                return true;
+            }
+
+            // exp is in seconds, compare with current time in seconds
+            const now = Math.floor(Date.now() / 1000);
+            return payload.exp <= now;
+        },
+
         // --------------------------------------------------
         // Core Authentication Flow
         // --------------------------------------------------
@@ -63,12 +126,16 @@ export const useAuthStore = defineStore("auth", {
         setToken(newToken) {
             this.token = newToken;
             localStorage.setItem("jwt_token", newToken);
+            this.userId = this.decodeUserId(newToken);
+            localStorage.setItem("user_id", this.userId);
             this.startRefreshTimer();
         },
 
         clearToken() {
             this.token = null;
+            this.userId = null;
             localStorage.removeItem("jwt_token");
+            localStorage.removeItem("user_id");
             this.stopRefreshTimer();
         },
 

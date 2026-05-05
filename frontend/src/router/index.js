@@ -3,6 +3,7 @@ import { useAuthStore } from "../stores/auth"; // Import the Pinia store
 
 import HomeView from "../views/HomeView.vue";
 import PaymentView from "../views/PaymentView.vue";
+import ProfileView from "../views/ProfileView.vue";
 import RefundView from "../views/RefundView.vue";
 import SearchView from "../views/SearchView.vue";
 
@@ -51,6 +52,12 @@ const routes = [
         path: "/payments/:paymentId/refund",
         name: "RefundPayment",
         component: RefundView,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/profile",
+        name: "Profile",
+        component: ProfileView,
         meta: { requiresAuth: true },
     },
 ];

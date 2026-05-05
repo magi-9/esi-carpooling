@@ -26,7 +26,8 @@
                             </template>Login</n-button>
                     </router-link>
                     <router-link to="/register" style="text-decoration: none;">
-                        <n-button type="primary"><template #icon>
+                        <n-button type="primary">
+                            <template #icon>
                                 <NIcon>
                                     <PersonAddOutline />
                                 </NIcon>
@@ -34,6 +35,15 @@
                     </router-link>
                 </template>
                 <template v-else>
+                    <router-link to="/profile" style="text-decoration: none;">
+                        <n-button type="primary">
+                            <template #icon>
+                                <NIcon>
+                                    <PersonCircleOutline />
+                                </NIcon>
+                            </template>Profile
+                        </n-button>
+                    </router-link>
                     <n-button ghost style="color: #ecf0f1; border-color: rgba(255,255,255,0.35);" @click="handleLogout">
                         <template #icon>
                             <NIcon>
@@ -52,7 +62,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { LogInOutline, LogOutOutline, PersonAddOutline } from "@vicons/ionicons5";
+import { LogInOutline, LogOutOutline, PersonAddOutline, PersonCircleOutline } from "@vicons/ionicons5";
 import { NIcon } from "naive-ui";
 
 const authStore = useAuthStore()

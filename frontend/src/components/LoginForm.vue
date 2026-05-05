@@ -1,51 +1,58 @@
 <template>
-  <div class="login-container">
-    <h2>Welcome Back</h2>
-    
-    <form @submit.prevent="handleLogin">
-      <!-- Email Input -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          id="email" 
-          v-model="email" 
-          type="email" 
+  <n-card title="Welcome Back" style="max-width: 400px; margin: 0 auto">
+    <n-form @submit.prevent="handleLogin" :show-label="false">
+      <n-form-item label="Email">
+        <n-input
+          v-model:value="email"
+          type="email"
           placeholder="your@email.com"
-          required 
+          :disabled="loading"
+          clearable
+          :input-props="{
+            autocomplete: 'email'
+          }"
         />
-      </div>
+      </n-form-item>
 
-      <!-- Password Input -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          id="password" 
-          v-model="password" 
-          type="password" 
+      <n-form-item label="Password">
+        <n-input
+          v-model:value="password"
+          type="password"
           placeholder="Enter your password"
-          required 
+          :disabled="loading"
+          show-password-toggle
+          :input-props="{
+            autocomplete: 'current-password'
+          }"
         />
-      </div>
+      </n-form-item>
 
-      <!-- Submit Button -->
-      <button type="submit" :disabled="loading">
-        {{ loading ? 'Signing in...' : 'Sign In' }}
-      </button>
+      <n-space vertical size="large">
+        <n-button type="primary" :loading="loading" block attr-type="submit">
+          {{ loading ? 'Signing in...' : 'Sign In' }}
+        </n-button>
 
-      <!-- API Error Display -->
-      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-    </form>
-    
-    <div class="register-link">
-      <p>Don't have an account? <router-link to="/register">Register here</router-link></p>
-    </div>
-  </div>
+        <n-alert v-if="errorMessage" type="error" :show-icon="false" style="text-align: center">
+          {{ errorMessage }}
+        </n-alert>
+
+        <n-divider />
+
+        <n-space justify="center">
+          <n-text>Don't have an account?</n-text>
+          <router-link to="/register" style="text-decoration: none">
+            <n-button text type="primary">Register here</n-button>
+          </router-link>
+        </n-space>
+      </n-space>
+    </n-form>
+  </n-card>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; // Ensure your Vite alias is configured
+import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -66,10 +73,9 @@ const handleLogin = async () => {
   try {
     // The store handles the API request, saving the token, and starting the refresh timer
     await authStore.login(email.value, password.value);
-    
-    // Redirect to the protected area of your application
-    router.push('/search'); 
-    
+
+    // Redirect to the home page after login
+    router.push('/');
   } catch (error) {
     // Handle Specific API Errors based on OpenAPI spec
     if (error.response && error.response.status === 401) {
@@ -82,76 +88,3 @@ const handleLogin = async () => {
   }
 };
 </script>
-
-<style scoped>
-.login-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #2196F3; /* A different color from register to distinguish */
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-button:disabled {
-  background-color: #90caf9;
-  cursor: not-allowed;
-}
-
-.error-text {
-  color: #d32f2f;
-  font-size: 0.875rem;
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.register-link {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.register-link a {
-  color: #2196F3;
-  text-decoration: none;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
-}
-</style>

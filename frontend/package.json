@@ -2,18 +2,33 @@
   "name": "carpooling-frontend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src/ --ext .vue,.js,.jsx,.cjs,.mjs --fix",
+    "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vicons/ionicons5": "^0.13.0",
     "axios": "^1.6.0",
+    "naive-ui": "^2.44.1",
     "pinia": "^3.0.4",
+    "vfonts": "^0.0.3",
     "vue": "^3.4.0",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@eslint/css": "^1.2.0",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^1.2.0",
     "@vitejs/plugin-vue": "^5.0.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-vue": "^10.9.1",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.2",
     "vite": "^5.0.0"
   }
 }

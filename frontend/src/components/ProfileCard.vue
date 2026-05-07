@@ -40,9 +40,20 @@ eslint-disable vue/no-mutating-props
         </n-form-item>
 
         <n-form-item label="Driver Status">
-          <n-tag :type="getStatusColor(profile.driverStatus)">
-            {{ profile.driverStatus || 'NONE' }}
-          </n-tag>
+          <n-space>
+            <n-tag :type="getStatusColor(profile.driverStatus)">
+              {{ profile.driverStatus || 'NONE' }}
+            </n-tag>
+            <n-button
+              v-if="profile.driverStatus === 'NONE'"
+              type="primary"
+              size="small"
+              @click="requestDriverVerification"
+              :loading="requestingVerification"
+            >
+              Request Verification
+            </n-button>
+          </n-space>
         </n-form-item>
       </n-form>
 
@@ -89,6 +100,14 @@ const props = defineProps({
   saveProfileChanges: {
     type: Function,
     required: true
+  },
+  requestDriverVerification: {
+    type: Function,
+    required: true
+  },
+  requestingVerification: {
+    type: Boolean,
+    default: false
   }
 });
 

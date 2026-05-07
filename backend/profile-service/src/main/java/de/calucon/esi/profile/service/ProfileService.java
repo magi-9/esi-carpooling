@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import de.calucon.esi.profile.client.ValidationClient;
 import de.calucon.esi.profile.dto.CreateProfileRequest;
 import de.calucon.esi.profile.dto.CreateVehicleRequest;
 import de.calucon.esi.profile.dto.UpdateProfileRequest;
@@ -19,13 +20,16 @@ import de.calucon.esi.profile.exception.ProfileNotFoundException;
 import de.calucon.esi.profile.repository.UserProfileRepository;
 import de.calucon.esi.profile.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProfileService {
 
     private final UserProfileRepository userProfileRepository;
     private final VehicleRepository vehicleRepository;
+    private final ValidationClient validationClient;
 
     @Transactional
     public UserProfileResponse createProfile(UUID userId, CreateProfileRequest request) {
@@ -125,6 +129,7 @@ public class ProfileService {
                 .build();
 
         vehicle = vehicleRepository.save(vehicle);
+        validationClient.requestVehicleVerification(userId, vehicle.getVehicleId());
         return VehicleResponse.fromEntity(vehicle);
     }
 
@@ -135,7 +140,29 @@ public class ProfileService {
 
         profile.setDriverStatus(status);
         profile = userProfileRepository.save(profile);
+
+        if (status == UserProfile.DriverStatus.PENDING) {
+            validationClient.requestDriverVerification(userId);
+        }
+
         return UserProfileResponse.fromEntity(profile);
+    }
+
+    @Transactional
+    public void handleVehicleValidationSuccess(UUID vehicleId) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for id: " + vehicleId));
+
+        vehicle.setIsVerified(true);
+        vehicleRepository.save(vehicle);
+        log.info("Marked vehicle {} as verified", vehicleId);
+    }
+
+    @Transactional
+    public void handleVehicleValidationFailure(UUID vehicleId, String reason) {
+        vehicleRepository.findById(vehicleId).ifPresentOrElse(vehicle -> {
+            log.warn("Vehicle validation failed for {}: {}", vehicleId, reason);
+        }, () -> log.warn("Received validation failure for unknown vehicle {}: {}", vehicleId, reason));
     }
 
     @Transactional

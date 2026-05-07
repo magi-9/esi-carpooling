@@ -37,4 +37,39 @@ class ValidationEventConsumerTest {
 
         verify(profileService).handleValidationSuccess(userId);
     }
+
+    @Test
+    void consumeValidationSuccess_WithVehicle_CallsVehicleHandler() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID vehicleId = UUID.randomUUID();
+        String message = "{\"userId\":\"" + userId + "\",\"vehicleId\":\"" + vehicleId + "\"}";
+        DocumentValidatedEvent event = DocumentValidatedEvent.builder().userId(userId).vehicleId(vehicleId).build();
+
+        when(objectMapper.readValue(message, DocumentValidatedEvent.class)).thenReturn(event);
+
+        consumer.consumeValidationSuccessEvent(message);
+
+        verify(profileService).handleValidationSuccess(userId);
+        verify(profileService).handleVehicleValidationSuccess(vehicleId);
+    }
+
+    @Test
+    void consumeValidationFailure_WithVehicle_CallsVehicleFailureHandler() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID vehicleId = UUID.randomUUID();
+        String reason = "expired";
+        String message = "{\"userId\":\"" + userId + "\",\"vehicleId\":\"" + vehicleId + "\",\"reason\":\"" + reason + "\"}";
+        DocumentValidationFailedEvent event = DocumentValidationFailedEvent.builder()
+                .userId(userId)
+                .vehicleId(vehicleId)
+                .reason(reason)
+                .build();
+
+        when(objectMapper.readValue(message, DocumentValidationFailedEvent.class)).thenReturn(event);
+
+        consumer.consumeValidationFailureEvent(message);
+
+        verify(profileService).handleValidationFailure(userId, reason);
+        verify(profileService).handleVehicleValidationFailure(vehicleId, reason);
+    }
 }

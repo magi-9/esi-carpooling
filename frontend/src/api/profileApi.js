@@ -36,6 +36,9 @@ export const getProfile = (userId) => client.get(`/profiles/${userId}`);
 
 export const updateProfile = (userId, data) => client.put(`/profiles/${userId}`, data);
 
+export const updateDriverStatus = (userId, driverStatus) =>
+  client.put(`/profiles/${userId}/status`, { driverStatus });
+
 export const getVehicles = (userId) => client.get(`/profiles/${userId}/vehicles`);
 
 export const addVehicle = (userId, data) => client.post(`/profiles/${userId}/vehicles`, data);
@@ -45,6 +48,7 @@ export const getVerifiedVehicles = (userId) => client.get(`/profiles/${userId}/v
 export default {
   getProfile,
   updateProfile,
+  updateDriverStatus,
   getVehicles,
   addVehicle,
   getVerifiedVehicles

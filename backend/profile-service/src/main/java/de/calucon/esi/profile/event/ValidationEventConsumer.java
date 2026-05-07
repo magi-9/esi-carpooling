@@ -29,6 +29,11 @@ public class ValidationEventConsumer {
                 profileService.handleValidationSuccess(event.getUserId());
                 log.info("Successfully updated driver status to VERIFIED for user: {}", event.getUserId());
             }
+
+            if (event.getVehicleId() != null) {
+                profileService.handleVehicleValidationSuccess(event.getVehicleId());
+                log.info("Successfully updated vehicle verification status for vehicle: {}", event.getVehicleId());
+            }
         } catch (Exception e) {
             log.error("Failed to process Validation Success Event: {}", e.getMessage(), e);
         }
@@ -45,6 +50,12 @@ public class ValidationEventConsumer {
                 profileService.handleValidationFailure(event.getUserId(), event.getReason());
                 log.warn("Updated driver status to REJECTED and flagged account for user: {}. Reason: {}",
                         event.getUserId(), event.getReason());
+            }
+
+            if (event.getVehicleId() != null) {
+                profileService.handleVehicleValidationFailure(event.getVehicleId(), event.getReason());
+                log.warn("Updated vehicle validation failure for vehicle: {}. Reason: {}",
+                        event.getVehicleId(), event.getReason());
             }
         } catch (Exception e) {
             log.error("Failed to process Validation Failure Event: {}", e.getMessage(), e);

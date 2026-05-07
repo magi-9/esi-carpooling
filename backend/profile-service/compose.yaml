@@ -28,6 +28,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${PROFILE_DB_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - JWT_SECRET=${JWT_SECRET}
+      - VALIDATION_SERVICE_URL=http://esi-validation-service:8080
     restart: unless-stopped
     networks:
       - esi-network

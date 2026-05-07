@@ -13,6 +13,8 @@
         :successMessage="successMessage"
         :errorMessage="errorMessage"
         :saveProfileChanges="saveProfileChanges"
+        :requestDriverVerification="requestDriverVerification"
+        :requestingVerification="requestingVerification"
       />
 
       <!-- Vehicles Section -->
@@ -31,7 +33,13 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { getProfile, updateProfile, getVehicles, addVehicle } from '@/api/profileApi';
+import {
+  getProfile,
+  updateProfile,
+  getVehicles,
+  addVehicle,
+  updateDriverStatus
+} from '@/api/profileApi';
 import ProfileCard from '@/components/ProfileCard.vue';
 import VehiclesSection from '@/components/VehiclesSection.vue';
 import { NSpace, NH1 } from 'naive-ui';
@@ -42,6 +50,7 @@ const authStore = useAuthStore();
 // State
 const loading = ref(true);
 const addingVehicle = ref(false);
+const requestingVerification = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 
@@ -118,9 +127,7 @@ const fetchProfile = async () => {
 
     const response = await getProfile(userId);
     profile.value = response.data;
-    profile.value.driverStatus = authStore.getRolesFromToken(authStore.token).includes('DRIVER')
-      ? 'VERIFIED'
-      : 'NONE';
+    profile.value.driverStatus = response.data.driverStatus || 'NONE';
     profileForm.value = {
       firstName: response.data.firstName,
       lastName: response.data.lastName,
@@ -227,6 +234,29 @@ const addNewVehicle = async () => {
       error.response?.data?.message || 'Failed to add vehicle. Please try again.';
   } finally {
     addingVehicle.value = false;
+  }
+};
+
+const requestDriverVerification = async () => {
+  try {
+    requestingVerification.value = true;
+    const userId = authStore.currentUserId;
+
+    await updateDriverStatus(userId, 'PENDING');
+
+    // Update local profile status
+    profile.value.driverStatus = 'PENDING';
+
+    successMessage.value = 'Driver verification requested successfully';
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 3000);
+  } catch (error) {
+    console.error('Failed to request driver verification:', error);
+    errorMessage.value =
+      error.response?.data?.message || 'Failed to request driver verification. Please try again.';
+  } finally {
+    requestingVerification.value = false;
   }
 };
 

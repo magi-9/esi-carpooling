@@ -21,11 +21,10 @@ eslint-disable vue/no-mutating-props
                     {{ vehicle.licensePlate }}
                   </div>
                 </div>
-                <div>
-                  <n-tag v-if="vehicle.isVerified" type="success">✓ Verified</n-tag>
-                  <n-tag v-else type="warning">Pending</n-tag>
-                </div>
               </n-space>
+              <div style="margin-top:12px">
+                <VehicleValidation :vehicle="vehicle" />
+              </div>
             </n-card>
           </div>
         </n-space>
@@ -70,10 +69,10 @@ import {
   NFormItem,
   NInput,
   NButton,
-  NTag,
   NEmpty,
   NDivider
 } from 'naive-ui';
+import VehicleValidation from '@/components/VehicleValidation.vue';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = defineProps({

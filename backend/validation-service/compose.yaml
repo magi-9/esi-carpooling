@@ -8,30 +8,38 @@ services:
     ports:
       - 8087:8080
     depends_on:
-      - postgres_db
+      - validation-db
+      - kafka
     environment:
-      - spring.datasource.url=jdbc:postgresql://postgres_db:5432/validationdb
+      - spring.datasource.url=jdbc:postgresql://validation-db:5432/validationdb
       - spring.datasource.username=postgres
       - spring.datasource.password=admin
-  postgres_db:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - esi-network
+  validation-db:
     image: 'postgres:latest'
     environment:
       - 'POSTGRES_DB=validationdb'
       - 'POSTGRES_PASSWORD=admin'
       - 'POSTGRES_USER=postgres'
     ports:
-      - '5432:5432'
+      - '5435:5432'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - esi-network
   db-init:
     image: postgres:latest
-    depends_on: ["postgres_db"]
+    depends_on: ["validation-db"]
     entrypoint: >
-      sh -c "until pg_isready -h postgres_db -p 5432 -U postgres; do sleep 1; done;
-      psql -h postgres_db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname='validationdb'\" | grep -q 1 || psql -h postgres_db -U postgres -c \"CREATE DATABASE validationdb;\""
+      sh -c "until pg_isready -h validation-db -p 5432 -U postgres; do sleep 1; done;
+      psql -h validation-db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname='validationdb'\" | grep -q 1 || psql -h validation-db -U postgres -c \"CREATE DATABASE validationdb;\""
     environment:
       PGPASSWORD: admin
     restart: "no"
+    networks:
+      - esi-network

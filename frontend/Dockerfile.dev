@@ -1,0 +1,17 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# Install deps
+COPY package*.json ./
+RUN npm install
+
+# Copy rest (mounting volume overrides in dev)
+COPY . .
+
+# Use poll-based watching for reliable file change detection in Docker
+ENV CHOKIDAR_USEPOLLING=true
+ENV NODE_ENV=development
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

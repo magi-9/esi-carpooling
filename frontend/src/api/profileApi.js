@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_PROFILE_API_URL || 'http://localhost:8085',
+  baseURL: import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -32,15 +32,15 @@ client.interceptors.response.use(
   }
 );
 
-export const getProfile = (userId) => client.get(`/profiles/${userId}`);
+export const getProfile = (userId) => client.get(`/api/profiles/${userId}`);
 
-export const updateProfile = (userId, data) => client.put(`/profiles/${userId}`, data);
+export const updateProfile = (userId, data) => client.put(`/api/profiles/${userId}`, data);
 
-export const getVehicles = (userId) => client.get(`/profiles/${userId}/vehicles`);
+export const getVehicles = (userId) => client.get(`/api/profiles/${userId}/vehicles`);
 
-export const addVehicle = (userId, data) => client.post(`/profiles/${userId}/vehicles`, data);
+export const addVehicle = (userId, data) => client.post(`/api/profiles/${userId}/vehicles`, data);
 
-export const getVerifiedVehicles = (userId) => client.get(`/profiles/${userId}/vehicles/verified`);
+export const getVerifiedVehicles = (userId) => client.get(`/api/profiles/${userId}/vehicles/verified`);
 
 export default {
   getProfile,

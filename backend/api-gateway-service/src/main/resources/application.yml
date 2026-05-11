@@ -3,13 +3,13 @@ spring:
     name: api-gateway-service
   cloud:
     gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
       routes:
         - id: auth-service-route
           uri: ${AUTH_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/api/auth/**
-          filters:
-            - StripPrefix=1
         - id: profile-service-route
           uri: ${PROFILE_SERVICE_URL:http://localhost:8085}
           predicates:
@@ -50,7 +50,7 @@ spring:
         - id: geolocation-service-route
           uri: ${GEOLOCATION_SERVICE_URL:http://localhost:8088}
           predicates:
-            - Path=/api/geolocation/**
+            - Path=/api/geocode,/api/reverse-geocode
             - Method=GET
           filters:
             - StripPrefix=1

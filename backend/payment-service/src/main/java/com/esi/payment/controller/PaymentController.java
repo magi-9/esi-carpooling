@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -44,6 +45,12 @@ public class PaymentController {
     @Operation(summary = "Get payment details", description = "Returns a payment by its identifier.")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(paymentService.getPayment(paymentId));
+    }
+
+    @PatchMapping("/{paymentId}/complete")
+    @Operation(summary = "Complete a payment", description = "Marks a processing payment as completed.")
+    public ResponseEntity<PaymentResponse> completePayment(@PathVariable UUID paymentId) {
+        return ResponseEntity.ok(paymentService.completePayment(paymentId));
     }
 
     @PostMapping("/authorize")

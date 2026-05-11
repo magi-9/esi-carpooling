@@ -32,7 +32,7 @@ services:
       - DB_PASSWORD=payment
       - DB_DRIVER=org.postgresql.Driver
       - JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-      - BOOKING_SERVICE_URL=${BOOKING_SERVICE_URL:-http://esi-booking-service:8080}
+      - BOOKING_SERVICE_URL=${BOOKING_SERVICE_URL:-http://ride-booking-service:8080}
       - PORT=8080
     depends_on:
       payment-db:

@@ -2,6 +2,7 @@ package de.calucon.esi.auth.config;
 
 import java.util.Arrays;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -37,6 +38,8 @@ public class SecurityConfig {
 
                 // 2. Set up our routing rules
                 .authorizeHttpRequests(auth -> auth
+                        // Allow OPTIONS for CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Make login and register endpoints completely public
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         // OpenAPI endpoints

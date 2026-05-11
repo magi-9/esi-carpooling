@@ -45,15 +45,19 @@ public class SearchService {
         RideSearch rideSearch = RideSearch.create(passengerId, resolvedCriteria);
 
         try {
-            List<RideDto> rides = rideBookingClient.searchRides(
+                String departureDate = resolvedCriteria.departureDate() != null
+                    ? resolvedCriteria.departureDate().atStartOfDay().toString()
+                    : "";
+
+                List<RideDto> rides = rideBookingClient.searchRides(
                     String.valueOf(resolvedOrigin.latitude()),
                     String.valueOf(resolvedOrigin.longitude()),
                     String.valueOf(resolvedDestination.latitude()),
                     String.valueOf(resolvedDestination.longitude()),
-                    resolvedCriteria.departureDate() != null ? resolvedCriteria.departureDate().toString() : "",
+                    departureDate,
                     resolvedCriteria.seatsNeeded(),
                     authHeader
-            );
+                );
 
             // Find max price for normalization
             BigDecimal maxPrice = rides.stream()

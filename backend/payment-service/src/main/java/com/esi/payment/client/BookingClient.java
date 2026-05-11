@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 @Component
@@ -31,6 +32,10 @@ public class BookingClient {
                     })
                     .toBodilessEntity();
             return true;
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        } catch (HttpClientErrorException e) {
+            throw new BookingServiceException("Booking service returned error: " + e.getStatusCode());
         } catch (Exception e) {
             log.warn("Could not verify booking {}: {}", bookingId, e.getMessage());
             throw new BookingServiceException("Booking service unavailable: " + e.getMessage());

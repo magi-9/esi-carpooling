@@ -6,6 +6,6 @@ server:
   port: ${PORT:8082}
 
 clients:
-  booking-service-url: ${BOOKING_SERVICE_URL:http://localhost:8083}
-  review-service-url: ${REVIEW_SERVICE_URL:http://localhost:8084}
-  geolocation-service-url: ${GEOLOCATION_SERVICE_URL:http://localhost:8088}
+  booking-service-url: ${BOOKING_SERVICE_URL:http://ride-booking-service:8080}
+  review-service-url: ${REVIEW_SERVICE_URL:http://esi-review-service:8080}
+  geolocation-service-url: ${GEOLOCATION_SERVICE_URL:http://geolocation-service:8080}

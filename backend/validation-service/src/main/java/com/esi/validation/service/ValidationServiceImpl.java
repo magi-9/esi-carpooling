@@ -14,16 +14,19 @@ import com.esi.validation.dto.VerificationRequestDTO;
 import com.esi.validation.mapper.ValidationMapper;
 import com.esi.validation.model.VerificationRequest;
 import com.esi.validation.repository.VerificationRequestRepository;
+import com.esi.validation.service.ValidationProcessor;
 
 @Service
 public class ValidationServiceImpl implements ValidationService {
 
     private final VerificationRequestRepository repository;
     private final ValidationMapper mapper;
+    private final ValidationProcessor processor;
 
-    public ValidationServiceImpl(VerificationRequestRepository repository, ValidationMapper mapper) {
+    public ValidationServiceImpl(VerificationRequestRepository repository, ValidationMapper mapper, ValidationProcessor processor) {
         this.repository = repository;
         this.mapper = mapper;
+        this.processor = processor;
     }
 
     @Override
@@ -46,7 +49,18 @@ public class ValidationServiceImpl implements ValidationService {
             }
         }
 
+        // mark request as pending and persist
+        entity.setStatus("PENDING");
+        entity.setIsApproved(Boolean.FALSE);
         VerificationRequest saved = repository.save(entity);
+
+        // process verification asynchronously (non-blocking)
+        try {
+            processor.processVerificationAsync(saved);
+        } catch (Exception e) {
+            System.out.println("Failed to start async verification: " + e.getMessage());
+        }
+
         return mapper.toDto(saved);
     }
 
@@ -58,6 +72,14 @@ public class ValidationServiceImpl implements ValidationService {
         v.setStatus("PENDING");
         v.setIsApproved(Boolean.FALSE);
         VerificationRequest saved = repository.save(v);
+
+        // process verification asynchronously (non-blocking)
+        try {
+            processor.processVerificationAsync(saved);
+        } catch (Exception e) {
+            System.out.println("Failed to start async verification: " + e.getMessage());
+        }
+        
         return mapper.toDto(saved);
     }
 

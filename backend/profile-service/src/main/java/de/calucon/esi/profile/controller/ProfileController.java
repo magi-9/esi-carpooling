@@ -75,6 +75,16 @@ public class ProfileController {
         return ResponseEntity.ok(vehicles);
     }
 
+    @GetMapping("/{userId}/vehicles/{vehicleId}")
+    @PreAuthorize("#userId.toString() == authentication.name")
+    @Operation(summary = "Retrieve a specific vehicle for the driver")
+    public ResponseEntity<VehicleResponse> getVehicle(
+            @Parameter(description = "User UUID", required = true) @PathVariable UUID userId,
+            @Parameter(description = "Vehicle UUID", required = true) @PathVariable UUID vehicleId) {
+        VehicleResponse vehicle = profileService.getVehicle(userId, vehicleId);
+        return ResponseEntity.ok(vehicle);
+    }
+
     @GetMapping("/{userId}/vehicles/verified")
     @PreAuthorize("#userId.toString() == authentication.name")
     @Operation(summary = "Retrieve all verified vehicles associated with a driver")

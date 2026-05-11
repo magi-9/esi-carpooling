@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +23,12 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllBookings() {
         return bookingService.getAllBookings();
+    }
+
+    @GetMapping("/my")
+    public List<BookingDto> getMyBookings(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return bookingService.getBookingsByPassengerId(userId);
     }
 
     @GetMapping("/{bookingId}")

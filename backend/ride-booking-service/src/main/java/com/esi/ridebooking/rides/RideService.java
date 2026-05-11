@@ -62,13 +62,25 @@ public class RideService {
 		UUID currentUserId = jwtService.extractUserId(authHeader);
 
 		// 3. Verify Vehicle with Profile Service
-		// Check that the vehicle belongs to the driver
+		// Check that the vehicle belongs to the driver AND is verified
 		try {
-			restClientBuilder.build().get()
+			@SuppressWarnings("unchecked")
+			Map<String, Object> vehicle = restClientBuilder.build().get()
 					.uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles/" + request.getVehicleId())
 					.header("Authorization", authHeader)
 					.retrieve()
-					.toBodilessEntity();
+					.body(Map.class);
+
+			if (vehicle == null) {
+				throw new IllegalArgumentException("Vehicle not found");
+			}
+
+			Boolean isVerified = (Boolean) vehicle.get("isVerified");
+			if (isVerified == null || !isVerified) {
+				throw new IllegalArgumentException("Vehicle must be verified before creating a ride");
+			}
+		} catch (ServiceUnavailableException e) {
+			throw e;
 		} catch (ResourceAccessException e) {
 			throw new ServiceUnavailableException("Profile service unavailable", e);
 		}
@@ -295,9 +307,13 @@ public class RideService {
 
 		if (ride.getStartLocation() != null) {
 			dto.setStartAddress(ride.getStartLocation().getDisplayAddress());
+			dto.setOriginLat(ride.getStartLocation().getLatitude());
+			dto.setOriginLon(ride.getStartLocation().getLongitude());
 		}
 		if (ride.getEndLocation() != null) {
 			dto.setEndAddress(ride.getEndLocation().getDisplayAddress());
+			dto.setDestinationLat(ride.getEndLocation().getLatitude());
+			dto.setDestinationLon(ride.getEndLocation().getLongitude());
 		}
 
 		return dto;

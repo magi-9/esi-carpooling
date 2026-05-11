@@ -21,6 +21,12 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public List<BookingDto> getBookingsByPassengerId(UUID passengerId) {
+        return bookingRepository.findByPassengerId(passengerId).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
     public BookingDto getBookingById(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found"));

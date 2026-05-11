@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByRideRideId(UUID rideId);
+    List<Booking> findByPassengerId(UUID passengerId);
 }

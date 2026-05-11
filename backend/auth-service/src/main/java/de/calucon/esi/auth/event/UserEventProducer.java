@@ -22,17 +22,22 @@ public class UserEventProducer {
 
         // We use the User ID as the Kafka "Key" so all events for the same user go to
         // the same partition
-        kafkaTemplate
-                .send(TOPIC, event.getUserId().toString(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish UserRegisteredEvent for User ID: {}. Error: {}",
-                                event.getUserId(), ex.getMessage());
-                    } else {
-                        log.debug("Successfully published UserRegisteredEvent for User ID: {}",
-                                event.getUserId());
-                    }
-                });
+        try {
+            kafkaTemplate
+                    .send(TOPIC, event.getUserId().toString(), event)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("Failed to publish UserRegisteredEvent for User ID: {}. Error: {}",
+                                    event.getUserId(), ex.getMessage());
+                        } else {
+                            log.debug("Successfully published UserRegisteredEvent for User ID: {}",
+                                    event.getUserId());
+                        }
+                    });
+        } catch (Exception ex) {
+            log.warn("Skipping UserRegisteredEvent publication for User ID {} because Kafka is unavailable: {}",
+                    event.getUserId(), ex.getMessage());
+        }
 
     }
 }

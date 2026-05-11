@@ -8,9 +8,10 @@ services:
       - "8082:8080"
     environment:
       - PORT=8080
-      - BOOKING_SERVICE_URL=http://esi-booking-service:8080
+      - BOOKING_SERVICE_URL=http://ride-booking-service:8080
       - REVIEW_SERVICE_URL=http://esi-review-service:8080
       - PROFILE_SERVICE_URL=http://esi-profile-service:8080
+      - GEOLOCATION_SERVICE_URL=http://geolocation-service:8080
     networks:
       - esi-network
     restart: unless-stopped

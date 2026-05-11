@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // The base URL comes from your OpenAPI spec's servers list
 const authApi = axios.create({
-  baseURL: 'http://localhost:8086',
+  baseURL: import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -13,7 +13,11 @@ const authApi = axios.create({
 authApi.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
-    if (authStore.token) {
+    const isPublicAuthRoute =
+      config.url === '/api/auth/register' ||
+      config.url === '/api/auth/login';
+
+    if (authStore.token && !isPublicAuthRoute) {
       config.headers.Authorization = `Bearer ${authStore.token}`;
     }
     return config;

@@ -96,7 +96,7 @@ class ApiGatewayRoutingTest {
                 .jsonPath("$.valid").isEqualTo(true);
 
         RecordedRequest request = authServer.takeRequest();
-        assertThat(request.getPath()).isEqualTo("/auth/validate");
+        assertThat(request.getPath()).isEqualTo("/api/auth/validate");
     }
 
     @Test

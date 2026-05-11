@@ -15,5 +15,4 @@ services:
       - esi-network
     restart: unless-stopped
     environment:
-      - VITE_API_PAYMENT_URL=http://esi-payment-service:8080
-      - VITE_API_DISCOVERY_URL=http://esi-ride-discovery-service:8080
+      - VITE_GATEWAY_API_URL=http://localhost:8080

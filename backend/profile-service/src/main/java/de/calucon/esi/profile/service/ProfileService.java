@@ -111,6 +111,19 @@ public class ProfileService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public VehicleResponse getVehicle(UUID userId, UUID vehicleId) {
+        if (!userProfileRepository.existsById(userId)) {
+            throw new ProfileNotFoundException(userId);
+        }
+
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .filter(v -> v.getUserProfile() != null && userId.equals(v.getUserProfile().getUserId()))
+                .orElseThrow(jakarta.persistence.EntityNotFoundException::new);
+
+        return VehicleResponse.fromEntity(vehicle);
+    }
+
     @Transactional
     public VehicleResponse addVehicle(UUID userId, CreateVehicleRequest request) {
         UserProfile profile = userProfileRepository.findById(userId)

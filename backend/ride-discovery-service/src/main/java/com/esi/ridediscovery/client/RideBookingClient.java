@@ -30,7 +30,7 @@ public class RideBookingClient {
             String destLat,
             String destLon,
             String departureDate,
-            int seats,
+            int seatsNeeded,
             String authHeader) {
         try {
             List<RideDto> rides = restClient.get()
@@ -38,10 +38,10 @@ public class RideBookingClient {
                             .path("/rides")
                             .queryParam("originLat", originLat)
                             .queryParam("originLon", originLon)
-                            .queryParam("destLat", destLat)
-                            .queryParam("destLon", destLon)
+                    .queryParam("destinationLat", destLat)
+                    .queryParam("destinationLon", destLon)
                             .queryParam("departureDate", departureDate)
-                            .queryParam("seats", seats)
+                    .queryParam("seatsNeeded", seatsNeeded)
                             .build())
                     .header("Authorization", authHeader != null ? authHeader : "")
                     .retrieve()

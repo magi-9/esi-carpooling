@@ -109,7 +109,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         // Clear security context on backend
-        await authApi.post('/api/auth/logout');
+        await authApi.post('/auth/logout');
       } catch (error) {
         console.error('Backend logout failed, forcing local logout.', error);
       } finally {
@@ -140,7 +140,7 @@ export const useAuthStore = defineStore('auth', {
     async refreshToken() {
       try {
         // The spec requires an existing valid token in the header
-        const response = await authApi.post('/api/auth/refresh');
+        const response = await authApi.post('/auth/refresh');
         this.setToken(response.data.token);
       } catch (error) {
         console.error('Token refresh failed. Logging out.', error);
@@ -169,13 +169,13 @@ export const useAuthStore = defineStore('auth', {
     // Role Management (Optional Utilities)
     // --------------------------------------------------
     async fetchRoles() {
-      const response = await authApi.get('/api/auth/roles');
+      const response = await authApi.get('/auth/roles');
       return response.data;
     },
 
     async checkRole(role) {
       try {
-        await authApi.get(`/api/auth/validate/role/${role}`);
+        await authApi.get(`/auth/validate/role/${role}`);
         return true;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {

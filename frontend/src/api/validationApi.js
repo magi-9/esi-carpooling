@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 
 const validationApi = axios.create({
-  baseURL: 'http://localhost:8087',
+  baseURL: import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:8080',
   // Let the browser set multipart boundaries when sending FormData
   headers: {
     // no default Content-Type for multipart
@@ -33,7 +33,7 @@ export async function createValidation(payload, files = []) {
   form.append('data', jsonBlob);
   files.forEach((f) => form.append('files', f));
   // Let the browser/axios set the multipart boundary header automatically
-  return validationApi.post('/validation', form);
+  return validationApi.post('/api/validation', form);
 }
 
 export default { createValidation };

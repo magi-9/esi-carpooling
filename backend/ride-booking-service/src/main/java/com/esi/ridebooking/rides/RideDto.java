@@ -15,6 +15,10 @@ public class RideDto {
     private String status;
     private String startAddress;
     private String endAddress;
+    private Double originLat;
+    private Double originLon;
+    private Double destinationLat;
+    private Double destinationLon;
 
     public UUID getRideId() { return rideId; }
     public void setRideId(UUID rideId) { this.rideId = rideId; }
@@ -36,4 +40,12 @@ public class RideDto {
     public void setStartAddress(String startAddress) { this.startAddress = startAddress; }
     public String getEndAddress() { return endAddress; }
     public void setEndAddress(String endAddress) { this.endAddress = endAddress; }
+    public Double getOriginLat() { return originLat; }
+    public void setOriginLat(Double originLat) { this.originLat = originLat; }
+    public Double getOriginLon() { return originLon; }
+    public void setOriginLon(Double originLon) { this.originLon = originLon; }
+    public Double getDestinationLat() { return destinationLat; }
+    public void setDestinationLat(Double destinationLat) { this.destinationLat = destinationLat; }
+    public Double getDestinationLon() { return destinationLon; }
+    public void setDestinationLon(Double destinationLon) { this.destinationLon = destinationLon; }
 }

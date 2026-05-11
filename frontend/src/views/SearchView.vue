@@ -28,6 +28,7 @@ import { useRouter } from 'vue-router';
 import SearchForm from '../components/SearchForm.vue';
 import RideCard from '../components/RideCard.vue';
 import { searchRides } from '../api/discoveryApi';
+import { getRide } from '@/api/rideApi';
 
 const router = useRouter();
 const results = ref([]);
@@ -41,7 +42,21 @@ async function handleSearch(params) {
   searched.value = true;
   try {
     const response = await searchRides(params);
-    results.value = response.data.recommendations || [];
+    const recommendations = response.data.recommendations || [];
+
+    // Fetch full ride details for each recommendation
+    const enriched = await Promise.all(
+      recommendations.map(async (rec) => {
+        try {
+          const rideResp = await getRide(rec.rideId);
+          return { ...rec, ride: rideResp.data };
+        } catch {
+          return { ...rec, ride: null };
+        }
+      })
+    );
+
+    results.value = enriched;
   } catch (e) {
     error.value = e.response?.data?.error || 'Failed to search rides. Is the backend running?';
     results.value = [];
@@ -51,8 +66,6 @@ async function handleSearch(params) {
 }
 
 function handleBook(rideId) {
-  // Navigate to payment page; in real system bookingId comes from Booking Service
-  // For demo, use rideId as a stand-in for bookingId
   router.push({ path: '/payments/new', query: { bookingId: rideId } });
 }
 </script>

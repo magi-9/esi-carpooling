@@ -24,8 +24,12 @@ services:
       - auth.service.url=http://auth-service:8086/api
       - profile.service.url=http://profile-service:8085
       - geolocation.service.url=http://geolocation-service:8080
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - esi-network
+    # Persist Maven cache to avoid re-downloading dependencies on restart
+    volumes:
+      - maven-cache:/root/.m2
   # our second service
   postgre_db:
     # we do not need a build command here because we will pull an already built image from docker hub
@@ -46,4 +50,8 @@ services:
       retries: 5
     networks:
       - esi-network
+
+# Named volume for Maven cache to persist dependencies
+volumes:
+  maven-cache:
 

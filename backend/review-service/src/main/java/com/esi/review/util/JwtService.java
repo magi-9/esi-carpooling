@@ -1,4 +1,4 @@
-package com.esi.ridebooking.util;
+package com.esi.review.util;
 
 import java.util.Base64;
 import java.util.Collections;
@@ -62,7 +62,7 @@ public class JwtService {
         }
 
         String token = authHeader.substring(7);
-        
+
         try {
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
@@ -71,7 +71,7 @@ public class JwtService {
 
             String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
             JsonNode jsonNode = objectMapper.readTree(payload);
-            
+
             return jsonNode.get("email").asText();
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse JWT token: " + e.getMessage());

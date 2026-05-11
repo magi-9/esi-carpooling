@@ -10,6 +10,7 @@ include:
   - backend/profile-service/compose.yaml
   - backend/validation-service/compose.yaml
   - backend/ride-booking-service/docker-compose.yml
+  - backend/review-service/docker-compose.yml
   - backend/geolocation-service/compose.yaml
   - frontend/docker-compose.yml
 

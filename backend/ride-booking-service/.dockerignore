@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Maven
+target/
+!target/*.jar
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+src/test/
+
+# Documentation
+*.md
+README*
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Local config
+.env
+.env.local
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml

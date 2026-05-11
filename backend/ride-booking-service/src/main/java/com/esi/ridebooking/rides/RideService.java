@@ -51,36 +51,36 @@ public class RideService {
 	private String paymentServiceUrl;
 
 	public RideDto createRide(CreateRideRequest request, String authHeader) {
-		// 1. Validate Auth Service (verify session and Driver role)
-		try {
-			// First check token is valid
-			restClientBuilder.build().get()
-					.uri(authServiceUrl + "/auth/validate")
-					.header("Authorization", authHeader)
-					.retrieve()
-					.toBodilessEntity();
-
-			// Then check user has DRIVER role (returns 200 if has role, 403 if not)
-			restClientBuilder.build().get()
-					.uri(authServiceUrl + "/auth/validate/role/DRIVER")
-					.header("Authorization", authHeader)
-					.retrieve()
-					.toBodilessEntity();
-		} catch (ResourceAccessException e) {
-			throw new ServiceUnavailableException("Auth service unavailable", e);
+		// 1. Validate user has DRIVER role using local JWT parsing
+		// Token is already validated by Spring Security OAuth2 Resource Server
+		java.util.Set<String> roles = jwtService.extractRoles(authHeader);
+		if (!roles.contains("DRIVER")) {
+			throw new RuntimeException("User must have DRIVER role to create a ride");
 		}
 
 		// 2. Extract user ID from JWT token locally (instead of trusting request body)
 		UUID currentUserId = jwtService.extractUserId(authHeader);
 
 		// 3. Verify Vehicle with Profile Service
-		// Check that the vehicle belongs to the driver
+		// Check that the vehicle belongs to the driver AND is verified
 		try {
-			restClientBuilder.build().get()
+			@SuppressWarnings("unchecked")
+			Map<String, Object> vehicle = restClientBuilder.build().get()
 					.uri(profileServiceUrl + "/profiles/" + currentUserId + "/vehicles/" + request.getVehicleId())
 					.header("Authorization", authHeader)
 					.retrieve()
-					.toBodilessEntity();
+					.body(Map.class);
+
+			if (vehicle == null) {
+				throw new IllegalArgumentException("Vehicle not found");
+			}
+
+			Boolean isVerified = (Boolean) vehicle.get("isVerified");
+			if (isVerified == null || !isVerified) {
+				throw new IllegalArgumentException("Vehicle must be verified before creating a ride");
+			}
+		} catch (ServiceUnavailableException e) {
+			throw e;
 		} catch (ResourceAccessException e) {
 			throw new ServiceUnavailableException("Profile service unavailable", e);
 		}
@@ -307,9 +307,13 @@ public class RideService {
 
 		if (ride.getStartLocation() != null) {
 			dto.setStartAddress(ride.getStartLocation().getDisplayAddress());
+			dto.setOriginLat(ride.getStartLocation().getLatitude());
+			dto.setOriginLon(ride.getStartLocation().getLongitude());
 		}
 		if (ride.getEndLocation() != null) {
 			dto.setEndAddress(ride.getEndLocation().getDisplayAddress());
+			dto.setDestinationLat(ride.getEndLocation().getLatitude());
+			dto.setDestinationLon(ride.getEndLocation().getLongitude());
 		}
 
 		return dto;

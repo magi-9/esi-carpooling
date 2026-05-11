@@ -28,7 +28,7 @@ import com.esi.review.reviews.ReviewRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 public class ReviewIntegrationTest {
 

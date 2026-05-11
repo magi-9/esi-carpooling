@@ -85,11 +85,11 @@ const form = reactive({
 
 function submit() {
   emit('search', {
-    originLat: 0,
-    originLon: 0,
+    originLat: null,
+    originLon: null,
     originAddress: form.originAddress,
-    destinationLat: 0,
-    destinationLon: 0,
+    destinationLat: null,
+    destinationLon: null,
     destinationAddress: form.destinationAddress,
     departureDate: form.departureDate,
     seatsNeeded: form.seatsNeeded,

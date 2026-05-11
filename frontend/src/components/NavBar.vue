@@ -10,6 +10,19 @@
           <router-link to="/search" style="text-decoration: none">
             <n-button text style="color: #ecf0f1">Search Rides</n-button>
           </router-link>
+          <router-link v-if="isDriver" to="/rides/create" style="text-decoration: none">
+            <n-button text style="color: #ecf0f1">
+              <template #icon>
+                <NIcon>
+                  <CarOutline />
+                </NIcon>
+              </template>
+              Create Ride
+            </n-button>
+          </router-link>
+          <router-link v-if="isDriver" to="/my-rides" style="text-decoration: none">
+            <n-button text style="color: #ecf0f1">My Rides</n-button>
+          </router-link>
           <router-link to="/payments/new" style="text-decoration: none">
             <n-button text style="color: #ecf0f1">New Payment</n-button>
           </router-link>
@@ -69,6 +82,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -76,7 +90,8 @@ import {
   LogInOutline,
   LogOutOutline,
   PersonAddOutline,
-  PersonCircleOutline
+  PersonCircleOutline,
+  CarOutline
 } from '@vicons/ionicons5';
 import { NIcon } from 'naive-ui';
 
@@ -84,6 +99,13 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const { isAuthenticated } = storeToRefs(authStore);
+
+// Check if user has DRIVER role
+const isDriver = computed(() => {
+  if (!authStore.token) return false;
+  const roles = authStore.getRolesFromToken(authStore.token);
+  return roles.includes('DRIVER');
+});
 
 const handleLogout = async () => {
   try {

@@ -15,14 +15,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.esi.review.client.AuthServiceClient;
 import com.esi.review.client.RideBookingServiceClient;
 import com.esi.review.reviews.Review;
 import com.esi.review.reviews.ReviewController;
 import com.esi.review.reviews.ReviewService;
 import com.esi.review.util.JwtService;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+
 @WebMvcTest(ReviewController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class ReviewControllerTest {
 
     @Autowired
@@ -30,9 +32,6 @@ public class ReviewControllerTest {
 
     @MockBean
     private ReviewService reviewService;
-
-    @MockBean
-    private AuthServiceClient authServiceClient;
 
     @MockBean
     private RideBookingServiceClient rideBookingServiceClient;

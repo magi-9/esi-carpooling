@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.esi.review.client.AuthServiceClient;
 import com.esi.review.client.RideBookingServiceClient;
 import com.esi.review.client.RideBookingServiceClient.BookingDto;
 import com.esi.review.util.JwtService;
@@ -21,18 +20,13 @@ public class ReviewService {
     private ReviewRepository reviewRepository;
 
     @Autowired
-    private AuthServiceClient authServiceClient;
-
-    @Autowired
     private RideBookingServiceClient rideBookingServiceClient;
 
     @Autowired
     private JwtService jwtService;
 
     public Review createReview(CreateReviewRequest request, String authHeader) {
-        // Validate token with auth service
-        authServiceClient.validateToken(authHeader);
-
+        // Token is already validated by Spring Security OAuth2 Resource Server
         // Extract reviewerId from JWT
         UUID reviewerId = jwtService.extractUserId(authHeader);
 
@@ -90,9 +84,7 @@ public class ReviewService {
     }
 
     public Review updateReview(UUID reviewId, ReviewDto dto, String authHeader) {
-        // Validate token
-        authServiceClient.validateToken(authHeader);
-
+        // Token is already validated by Spring Security OAuth2 Resource Server
         // Extract reviewerId from JWT
         UUID reviewerId = jwtService.extractUserId(authHeader);
 
@@ -118,9 +110,7 @@ public class ReviewService {
     }
 
     public void deleteReview(UUID reviewId, String authHeader) {
-        // Validate token
-        authServiceClient.validateToken(authHeader);
-
+        // Token is already validated by Spring Security OAuth2 Resource Server
         // Extract reviewerId from JWT
         UUID reviewerId = jwtService.extractUserId(authHeader);
 

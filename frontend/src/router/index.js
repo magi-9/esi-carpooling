@@ -6,6 +6,8 @@ import PaymentView from '../views/PaymentView.vue';
 import ProfileView from '../views/ProfileView.vue';
 import RefundView from '../views/RefundView.vue';
 import SearchView from '../views/SearchView.vue';
+import CreateRideView from '../views/CreateRideView.vue';
+import MyRidesView from '../views/MyRidesView.vue';
 
 import LoginForm from '../components/LoginForm.vue';
 import RegisterForm from '../components/RegisterForm.vue';
@@ -35,6 +37,18 @@ const routes = [
     name: 'Search',
     component: SearchView,
     meta: { requiresAuth: true } // Requires a valid JWT
+  },
+  {
+    path: '/rides/create',
+    name: 'CreateRide',
+    component: CreateRideView,
+    meta: { requiresAuth: true, requiresDriver: true }
+  },
+  {
+    path: '/my-rides',
+    name: 'MyRides',
+    component: MyRidesView,
+    meta: { requiresAuth: true, requiresDriver: true }
   },
   {
     path: '/payments/new',
@@ -81,7 +95,16 @@ router.beforeEach((to, from, next) => {
   else if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'Search' }); // Redirect them to their main view
   }
-  // 3. User is allowed to proceed normally
+  // 3. Check DRIVER role for routes that require it
+  else if (to.meta.requiresDriver && isAuthenticated) {
+    const roles = authStore.getRolesFromToken(authStore.token);
+    if (!roles.includes('DRIVER')) {
+      next({ name: 'Search' }); // Redirect non-drivers to search
+    } else {
+      next();
+    }
+  }
+  // 4. User is allowed to proceed normally
   else {
     next();
   }

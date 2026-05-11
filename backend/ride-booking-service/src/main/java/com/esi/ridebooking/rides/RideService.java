@@ -51,23 +51,11 @@ public class RideService {
 	private String paymentServiceUrl;
 
 	public RideDto createRide(CreateRideRequest request, String authHeader) {
-		// 1. Validate Auth Service (verify session and Driver role)
-		try {
-			// First check token is valid
-			restClientBuilder.build().get()
-					.uri(authServiceUrl + "/auth/validate")
-					.header("Authorization", authHeader)
-					.retrieve()
-					.toBodilessEntity();
-
-			// Then check user has DRIVER role (returns 200 if has role, 403 if not)
-			restClientBuilder.build().get()
-					.uri(authServiceUrl + "/auth/validate/role/DRIVER")
-					.header("Authorization", authHeader)
-					.retrieve()
-					.toBodilessEntity();
-		} catch (ResourceAccessException e) {
-			throw new ServiceUnavailableException("Auth service unavailable", e);
+		// 1. Validate user has DRIVER role using local JWT parsing
+		// Token is already validated by Spring Security OAuth2 Resource Server
+		java.util.Set<String> roles = jwtService.extractRoles(authHeader);
+		if (!roles.contains("DRIVER")) {
+			throw new RuntimeException("User must have DRIVER role to create a ride");
 		}
 
 		// 2. Extract user ID from JWT token locally (instead of trusting request body)

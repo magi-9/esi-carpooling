@@ -1,0 +1,31 @@
+# Multi-stage build for smaller production image
+
+# Stage 1: Build the application
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+WORKDIR /build
+
+# Copy pom.xml first for better layer caching (dependencies download only when pom changes)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source and build
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+# Stage 2: Run the application with minimal JRE
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy only the JAR from builder stage
+COPY --from=builder /build/target/*.jar app.jar
+
+# JVM optimizations for containers
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

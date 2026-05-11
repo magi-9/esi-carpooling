@@ -43,7 +43,7 @@ public class RideBookingClient {
                             .queryParam("departureDate", departureDate)
                     .queryParam("seatsNeeded", seatsNeeded)
                             .build())
-                    .header("Authorization", authHeader != null ? authHeader : "")
+                    // Do not forward auth header - GET /rides is public on ride-booking-service
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<RideDto>>() {});
             return rides != null ? rides : Collections.emptyList();

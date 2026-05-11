@@ -1,0 +1,51 @@
+package com.esi.review.util;
+
+import java.util.Base64;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@Service
+public class JwtService {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * Extracts the user ID (UUID) from the JWT token subject claim.
+     * This only parses the token locally without verifying the signature.
+     * The token should already be validated by the auth service.
+     */
+    public UUID extractUserId(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Invalid or missing Authorization header");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        
+        try {
+            // Split the token into parts
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                throw new RuntimeException("Invalid JWT token format");
+            }
+
+            // Decode the payload (second part)
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            
+            // Parse JSON and extract "sub" field which contains the user ID
+            JsonNode jsonNode = objectMapper.readTree(payload);
+            String userId = jsonNode.get("sub").asText();
+            
+            if (userId == null || userId.isEmpty()) {
+                throw new RuntimeException("User ID not found in token");
+            }
+            
+            return UUID.fromString(userId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JWT token: " + e.getMessage());
+        }
+    }
+}

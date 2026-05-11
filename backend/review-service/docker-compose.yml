@@ -1,0 +1,33 @@
+services:
+  review-service-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reviews
+      POSTGRES_USER: reviews
+      POSTGRES_PASSWORD: reviews
+    ports:
+      - "5435:5432"
+    networks:
+      - esi-network
+
+  review-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://review-service-db:5432/reviews
+      - SPRING_DATASOURCE_USERNAME=reviews
+      - SPRING_DATASOURCE_PASSWORD=reviews
+      - AUTH_SERVICE_URL=http://auth-service:8086
+      - RIDE_BOOKING_SERVICE_URL=http://ride-booking-service:8083
+    depends_on:
+      - review-service-db
+    networks:
+      - esi-network
+
+networks:
+  esi-network:
+    external: true

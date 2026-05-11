@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: review-service
+  
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/reviews}
+    username: ${SPRING_DATASOURCE_USERNAME:reviews}
+    password: ${SPRING_DATASOURCE_PASSWORD:reviews}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    defer-datasource-initialization: true
+  
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8084
+
+clients:
+  auth-service-url: ${AUTH_SERVICE_URL:http://localhost:8086}
+  ride-booking-service-url: ${RIDE_BOOKING_SERVICE_URL:http://localhost:8083}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

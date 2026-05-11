@@ -7,6 +7,7 @@ public class ReviewDto {
     
     private UUID reviewId;
     private UUID bookingId;
+    private UUID rideId;
     private UUID reviewerId;
     private String comment;
     private Integer stars;
@@ -16,6 +17,7 @@ public class ReviewDto {
         ReviewDto dto = new ReviewDto();
         dto.setReviewId(review.getReviewId());
         dto.setBookingId(review.getBookingId());
+        dto.setRideId(review.getRideId());
         dto.setReviewerId(review.getReviewerId());
         dto.setComment(review.getComment());
         dto.setStars(review.getStars());
@@ -37,6 +39,14 @@ public class ReviewDto {
 
     public void setBookingId(UUID bookingId) {
         this.bookingId = bookingId;
+    }
+
+    public UUID getRideId() {
+        return rideId;
+    }
+
+    public void setRideId(UUID rideId) {
+        this.rideId = rideId;
     }
 
     public UUID getReviewerId() {

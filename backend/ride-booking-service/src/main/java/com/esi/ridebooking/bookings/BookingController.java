@@ -21,11 +21,6 @@ public class BookingController {
     private BookingService bookingService;
 
     @GetMapping
-    public List<BookingDto> getAllBookings() {
-        return bookingService.getAllBookings();
-    }
-
-    @GetMapping("/my")
     public List<BookingDto> getMyBookings(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         return bookingService.getBookingsByPassengerId(userId);

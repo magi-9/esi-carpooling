@@ -8,6 +8,7 @@ import RefundView from '../views/RefundView.vue';
 import SearchView from '../views/SearchView.vue';
 import CreateRideView from '../views/CreateRideView.vue';
 import MyRidesView from '../views/MyRidesView.vue';
+import MyBookingsView from '../views/MyBookingsView.vue';
 
 import LoginForm from '../components/LoginForm.vue';
 import RegisterForm from '../components/RegisterForm.vue';
@@ -49,6 +50,12 @@ const routes = [
     name: 'MyRides',
     component: MyRidesView,
     meta: { requiresAuth: true, requiresDriver: true }
+  },
+  {
+    path: '/bookings',
+    name: 'Bookings',
+    component: MyBookingsView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/payments/new',

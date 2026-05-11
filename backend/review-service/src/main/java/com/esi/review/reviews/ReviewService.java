@@ -59,6 +59,7 @@ public class ReviewService {
 		// Create and save review
 		Review review = new Review();
 		review.setBookingId(request.getBookingId());
+		review.setRideId(booking.getRideId());
 		review.setReviewerId(reviewerId);
 		review.setComment(request.getComment());
 		review.setStars(request.getStars());

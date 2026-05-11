@@ -19,6 +19,8 @@ public class Review {
 
     private UUID bookingId;
 
+    private UUID rideId;
+
     private UUID reviewerId;
 
     private String comment;
@@ -48,6 +50,14 @@ public class Review {
 
     public void setBookingId(UUID bookingId) {
         this.bookingId = bookingId;
+    }
+
+    public UUID getRideId() {
+        return rideId;
+    }
+
+    public void setRideId(UUID rideId) {
+        this.rideId = rideId;
     }
 
     public UUID getReviewerId() {

@@ -28,7 +28,7 @@ import { useRouter } from 'vue-router';
 import SearchForm from '../components/SearchForm.vue';
 import RideCard from '../components/RideCard.vue';
 import { searchRides } from '../api/discoveryApi';
-import { getRide } from '@/api/rideApi';
+import { createBooking, getRide } from '@/api/rideApi';
 
 const router = useRouter();
 const results = ref([]);
@@ -65,7 +65,24 @@ async function handleSearch(params) {
   }
 }
 
-function handleBook(rideId) {
-  router.push({ path: '/payments/new', query: { bookingId: rideId } });
+async function handleBook(recommendation) {
+  try {
+    const rideId = recommendation.rideId;
+    const bookingResp = await createBooking(rideId);
+    const bookingId = String(bookingResp.data);
+    const ride = recommendation.ride || {};
+
+    router.push({
+      path: '/payments/new',
+      query: {
+        bookingId,
+        amount: ride.seatPriceAmount || 25,
+        currency: ride.seatPriceCurrency || 'EUR',
+        payeeId: ride.driverId || 'driver'
+      }
+    });
+  } catch (e) {
+    error.value = e.response?.data?.error || 'Failed to create booking for this ride.';
+  }
 }
 </script>

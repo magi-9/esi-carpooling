@@ -32,7 +32,7 @@
           Relevance: {{ (recommendation.relevanceScore * 100).toFixed(0) }}%
         </div>
         <button
-          @click="$emit('book', recommendation.rideId)"
+          @click="$emit('book', recommendation)"
           style="
             margin-top: 12px;
             padding: 8px 16px;

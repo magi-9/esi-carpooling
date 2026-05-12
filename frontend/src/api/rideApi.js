@@ -11,5 +11,7 @@ const authHeader = () => ({
 export const createRide = (rideData) => client.post('/api/rides', rideData, { headers: authHeader() });
 export const getRides = () => client.get('/api/rides', { headers: authHeader() });
 export const getRide = (rideId) => client.get(`/api/rides/${rideId}`, { headers: authHeader() });
+export const createBooking = (rideId) =>
+  client.post(`/api/rides/${rideId}/bookings`, {}, { headers: authHeader() });
 export const updateRide = (rideId, rideData) => client.put(`/api/rides/${rideId}`, rideData, { headers: authHeader() });
 export const deleteRide = (rideId) => client.delete(`/api/rides/${rideId}`, { headers: authHeader() });

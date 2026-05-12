@@ -28,7 +28,7 @@
     </table>
 
     <button
-      v-if="payment.status === 'INITIATED'"
+      v-if="payment.status === 'PROCESSING'"
       @click="$emit('complete')"
       style="
         width: 100%;

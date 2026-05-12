@@ -5,7 +5,7 @@ const client = axios.create({
 });
 
 const authHeader = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token') || 'dev-token'}`
+  Authorization: `Bearer ${localStorage.getItem('jwt_token') || 'dev-token'}`
 });
 
 export const initiatePayment = (data) => client.post('/api/payments', data, { headers: authHeader() });
@@ -20,4 +20,4 @@ export const requestRefund = (paymentId, data) =>
   client.post(`/api/payments/${paymentId}/refunds`, data, { headers: authHeader() });
 
 export const getRefund = (paymentId) =>
-  client.get(`/payments/${paymentId}/refunds`, { headers: authHeader() });
+  client.get(`/api/payments/${paymentId}/refunds`, { headers: authHeader() });

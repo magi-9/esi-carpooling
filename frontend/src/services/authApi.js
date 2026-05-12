@@ -14,8 +14,7 @@ authApi.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
     const isPublicAuthRoute =
-      config.url === '/api/auth/register' ||
-      config.url === '/api/auth/login';
+      config.url === '/api/auth/register' || config.url === '/api/auth/login';
 
     if (authStore.token && !isPublicAuthRoute) {
       config.headers.Authorization = `Bearer ${authStore.token}`;

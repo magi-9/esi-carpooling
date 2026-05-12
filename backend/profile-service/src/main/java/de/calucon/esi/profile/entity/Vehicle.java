@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -44,7 +46,14 @@ public class Vehicle {
     @Column(name = "license_plate", nullable = false)
     private String licensePlate;
 
-    @Column(name = "is_verified")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_status")
     @Builder.Default
-    private Boolean isVerified = false;
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+
+    public enum VerificationStatus {
+        PENDING,
+        SUCCESS,
+        FAILED
+    }
 }

@@ -4,25 +4,30 @@ eslint-disable vue/no-mutating-props
 <template>
   <n-card>
     <n-space vertical>
-      <n-h2>Vehicles</n-h2>
+      <n-space justify="space-between" align="center">
+        <n-h2 style="margin: 0">Vehicles</n-h2>
+        <n-button type="primary" @click="showModal = true">Add Vehicle</n-button>
+      </n-space>
 
       <!-- Vehicles List -->
       <div v-if="vehicles.length > 0" class="vehicles-list">
         <n-space vertical>
           <div v-for="vehicle in vehicles" :key="vehicle.vehicleId" class="vehicle-item">
             <n-card size="small">
-              <n-space>
+              <n-space justify="space-between" align="center">
                 <div>
                   <div>
                     <strong>{{ vehicle.make }} {{ vehicle.model }}</strong>
                   </div>
                   <div class="license-plate">
-                    License Plate:
                     {{ vehicle.licensePlate }}
                   </div>
                 </div>
+                <n-tag :type="getVerificationColor(vehicle.verificationStatus)">
+                  {{ vehicle.verificationStatus }}
+                </n-tag>
               </n-space>
-              <div style="margin-top:12px">
+              <div v-if="vehicle.verificationStatus !== 'SUCCESS'" style="margin-top: 12px">
                 <VehicleValidation :vehicle="vehicle" />
               </div>
             </n-card>
@@ -34,47 +39,51 @@ eslint-disable vue/no-mutating-props
         <n-empty description="No vehicles added yet" />
       </div>
 
-      <!-- Add Vehicle Form -->
-      <n-divider />
-      <n-h3>Add New Vehicle</n-h3>
+      <!-- Add Vehicle Modal -->
+      <n-modal
+        v-model:show="showModal"
+        preset="card"
+        title="Add New Vehicle"
+        style="width: 500px; max-width: 90vw"
+      >
+        <n-form :model="vehicleForm" :rules="vehicleRules">
+          <n-form-item label="Make" path="make">
+            <n-input v-model:value="vehicleForm.make" placeholder="e.g., Toyota" />
+          </n-form-item>
 
-      <n-form :model="vehicleForm" :rules="vehicleRules">
-        <n-form-item label="Make" path="make">
-          <n-input v-model:value="vehicleForm.make" placeholder="e.g., Toyota" />
-        </n-form-item>
+          <n-form-item label="Model" path="model">
+            <n-input v-model:value="vehicleForm.model" placeholder="e.g., Camry" />
+          </n-form-item>
 
-        <n-form-item label="Model" path="model">
-          <n-input v-model:value="vehicleForm.model" placeholder="e.g., Camry" />
-        </n-form-item>
+          <n-form-item label="License Plate" path="licensePlate">
+            <n-input v-model:value="vehicleForm.licensePlate" placeholder="e.g., ABC-1234" />
+          </n-form-item>
 
-        <n-form-item label="License Plate" path="licensePlate">
-          <n-input v-model:value="vehicleForm.licensePlate" placeholder="e.g., ABC-1234" />
-        </n-form-item>
-
-        <n-button type="primary" @click="addNewVehicle" :loading="addingVehicle">
-          Add Vehicle
-        </n-button>
-      </n-form>
+          <n-button type="primary" @click="submitForm" :loading="addingVehicle">
+            Add Vehicle
+          </n-button>
+        </n-form>
+      </n-modal>
     </n-space>
   </n-card>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import {
   NSpace,
   NCard,
   NH2,
-  NH3,
   NForm,
   NFormItem,
   NInput,
   NButton,
   NEmpty,
-  NDivider
+  NTag,
+  NModal
 } from 'naive-ui';
 import VehicleValidation from '@/components/VehicleValidation.vue';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = defineProps({
   vehicles: {
     type: Array,
@@ -97,6 +106,26 @@ const props = defineProps({
     required: true
   }
 });
+
+// Methods
+const showModal = ref(false);
+
+const submitForm = async () => {
+  await props.addNewVehicle();
+  // Close the modal only if the parent successfully cleared the form
+  if (!props.vehicleForm.make && !props.vehicleForm.model && !props.vehicleForm.licensePlate) {
+    showModal.value = false;
+  }
+};
+
+const getVerificationColor = (status) => {
+  const colors = {
+    SUCCESS: 'success',
+    PENDING: 'warning',
+    FAILED: 'error'
+  };
+  return colors[status] || 'default';
+};
 </script>
 
 <style scoped>

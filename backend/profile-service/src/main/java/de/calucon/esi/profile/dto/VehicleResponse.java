@@ -2,8 +2,6 @@ package de.calucon.esi.profile.dto;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import de.calucon.esi.profile.entity.Vehicle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +21,7 @@ public class VehicleResponse {
     private String make;
     private String model;
     private String licensePlate;
-    @JsonProperty("isVerified")
-    private Boolean isVerified;
+    private Vehicle.VerificationStatus verificationStatus;
 
     public static VehicleResponse fromEntity(Vehicle vehicle) {
         return VehicleResponse.builder()
@@ -33,7 +30,7 @@ public class VehicleResponse {
                 .make(vehicle.getMake())
                 .model(vehicle.getModel())
                 .licensePlate(vehicle.getLicensePlate())
-                .isVerified(vehicle.getIsVerified())
+                .verificationStatus(vehicle.getVerificationStatus())
                 .build();
     }
 }

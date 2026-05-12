@@ -9,6 +9,7 @@
         :profileForm="profileForm"
         :profileRules="profileRules"
         :profile="profile"
+        :userRoles="userRoles"
         :loading="loading"
         :successMessage="successMessage"
         :errorMessage="errorMessage"
@@ -17,6 +18,7 @@
 
       <!-- Vehicles Section -->
       <VehiclesSection
+        v-if="userRoles.includes('DRIVER')"
         :vehicles="vehicles"
         :vehicleForm="vehicleForm"
         :vehicleRules="vehicleRules"
@@ -28,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { getProfile, updateProfile, getVehicles, addVehicle } from '@/api/profileApi';
@@ -44,6 +46,10 @@ const loading = ref(true);
 const addingVehicle = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
+
+let pollingInterval = null;
+
+const userRoles = computed(() => authStore.getRolesFromToken(authStore.token));
 
 const profile = ref({
   userId: '',
@@ -118,9 +124,6 @@ const fetchProfile = async () => {
 
     const response = await getProfile(userId);
     profile.value = response.data;
-    profile.value.driverStatus = authStore.getRolesFromToken(authStore.token).includes('DRIVER')
-      ? 'VERIFIED'
-      : 'NONE';
     profileForm.value = {
       firstName: response.data.firstName,
       lastName: response.data.lastName,
@@ -230,6 +233,28 @@ const addNewVehicle = async () => {
   }
 };
 
+const pollStatus = async () => {
+  try {
+    const userId = authStore.currentUserId;
+    if (!userId) return;
+
+    const profileResponse = await getProfile(userId);
+    profile.value.driverStatus = profileResponse.data.driverStatus;
+
+    const vehiclesResponse = await getVehicles(userId);
+    vehicles.value = vehiclesResponse.data.map((updatedVehicle) => {
+      const currentVehicle = vehicles.value.find((v) => v.vehicleId === updatedVehicle.vehicleId);
+      if (currentVehicle && currentVehicle.verificationStatus === 'SUCCESS') {
+        return currentVehicle;
+      }
+      return updatedVehicle;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    // Silently ignore polling errors so we don't spam the UI or console
+  }
+};
+
 // Lifecycle
 onMounted(() => {
   if (!authStore.isAuthenticated) {
@@ -238,6 +263,15 @@ onMounted(() => {
   }
 
   fetchProfile();
+
+  // Start polling backend for updates to verification status
+  pollingInterval = setInterval(pollStatus, 5000);
+});
+
+onUnmounted(() => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
 });
 </script>
 

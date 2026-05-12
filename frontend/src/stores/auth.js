@@ -109,7 +109,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         // Clear security context on backend
-        await authApi.post('/auth/logout');
+        await authApi.post('/api/auth/logout');
       } catch (error) {
         console.error('Backend logout failed, forcing local logout.', error);
       } finally {

@@ -9,6 +9,7 @@
         :profileForm="profileForm"
         :profileRules="profileRules"
         :profile="profile"
+        :userRoles="userRoles"
         :loading="loading"
         :successMessage="successMessage"
         :errorMessage="errorMessage"
@@ -17,6 +18,7 @@
 
       <!-- Vehicles Section -->
       <VehiclesSection
+        v-if="userRoles.includes('DRIVER')"
         :vehicles="vehicles"
         :vehicleForm="vehicleForm"
         :vehicleRules="vehicleRules"
@@ -28,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { getProfile, updateProfile, getVehicles, addVehicle } from '@/api/profileApi';
@@ -44,6 +46,8 @@ const loading = ref(true);
 const addingVehicle = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
+
+const userRoles = computed(() => authStore.getRolesFromToken(authStore.token));
 
 const profile = ref({
   userId: '',

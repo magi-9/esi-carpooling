@@ -39,6 +39,14 @@ eslint-disable vue/no-mutating-props
           />
         </n-form-item>
 
+        <n-form-item label="Roles">
+          <n-space>
+            <n-tag v-for="role in userRoles" :key="role" type="info">
+              {{ role }}
+            </n-tag>
+          </n-space>
+        </n-form-item>
+
         <n-form-item label="Driver Status">
           <n-tag :type="getStatusColor(profile.driverStatus)">
             {{ profile.driverStatus || 'NONE' }}
@@ -73,6 +81,10 @@ const props = defineProps({
   profile: {
     type: Object,
     required: true
+  },
+  userRoles: {
+    type: Array,
+    default: () => []
   },
   loading: {
     type: Boolean,

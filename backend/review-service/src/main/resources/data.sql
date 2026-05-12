@@ -1,5 +1,5 @@
-INSERT INTO review (review_id, booking_id, reviewer_id, comment, stars, created_at, deleted) VALUES
-('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '550e8400-e29b-41d4-a716-446655440000', 'Excellent ride, very professional driver!', 5, '2026-01-15 10:30:00', false),
-('33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444', '660e8400-e29b-41d4-a716-446655440001', 'Good ride but a bit late', 4, '2026-01-14 15:45:00', false),
-('55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666', '550e8400-e29b-41d4-a716-446655440000', 'Car was clean and comfortable', 5, '2026-01-13 09:00:00', false)
+INSERT INTO review (review_id, booking_id, ride_id, reviewer_id, comment, stars, created_at, deleted) VALUES
+('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '550e8400-e29b-41d4-a716-446655440000', 'Excellent ride, very professional driver!', 5, '2026-01-15 10:30:00', false),
+('33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444', 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', '660e8400-e29b-41d4-a716-446655440001', 'Good ride but a bit late', 4, '2026-01-14 15:45:00', false),
+('55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666', 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', '550e8400-e29b-41d4-a716-446655440000', 'Car was clean and comfortable', 5, '2026-01-13 09:00:00', false)
 ON CONFLICT DO NOTHING;

@@ -144,8 +144,8 @@ public class RideService {
 				.filter(ride -> status == null || ride.getStatus().equals(status))
 				.filter(ride -> departureDate == null ||
 						(ride.getRideStartDate() != null &&
-								ride.getRideStartDate().isAfter(departureDate.minusHours(1)) &&
-								ride.getRideStartDate().isBefore(departureDate.plusHours(1))))
+								!ride.getRideStartDate().isBefore(departureDate.toLocalDate().atStartOfDay()) &&
+								ride.getRideStartDate().isBefore(departureDate.toLocalDate().plusDays(1).atStartOfDay())))
 				.filter(ride -> seatsNeeded == null || ride.hasAvailableSeats())
 				.filter(ride -> maxPricePerSeat == null ||
 						(ride.getSeatPriceAmount() != null

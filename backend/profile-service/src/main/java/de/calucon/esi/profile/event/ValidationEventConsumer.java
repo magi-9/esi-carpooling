@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.calucon.esi.profile.entity.Vehicle;
 import de.calucon.esi.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,11 @@ public class ValidationEventConsumer {
                 profileService.handleValidationSuccess(event.getUserId());
                 log.info("Successfully updated driver status to VERIFIED for user: {}", event.getUserId());
             }
+
+            if (event.getVehicleId() != null) {
+                profileService.verifyVehicle(event.getVehicleId(), Vehicle.VerificationStatus.SUCCESS);
+                log.info("Successfully verified vehicle: {}", event.getVehicleId());
+            }
         } catch (Exception e) {
             log.error("Failed to process Validation Success Event: {}", e.getMessage(), e);
         }
@@ -45,6 +51,12 @@ public class ValidationEventConsumer {
                 profileService.handleValidationFailure(event.getUserId(), event.getReason());
                 log.warn("Updated driver status to REJECTED and flagged account for user: {}. Reason: {}",
                         event.getUserId(), event.getReason());
+            }
+
+            if (event.getVehicleId() != null) {
+                profileService.verifyVehicle(event.getVehicleId(), Vehicle.VerificationStatus.FAILED);
+                log.warn("Updated vehicle status to FAILED for vehicle: {}. Reason: {}",
+                        event.getVehicleId(), event.getReason());
             }
         } catch (Exception e) {
             log.error("Failed to process Validation Failure Event: {}", e.getMessage(), e);

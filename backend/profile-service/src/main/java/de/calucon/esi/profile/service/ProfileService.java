@@ -18,6 +18,7 @@ import de.calucon.esi.profile.exception.DuplicateProfileException;
 import de.calucon.esi.profile.exception.ProfileNotFoundException;
 import de.calucon.esi.profile.repository.UserProfileRepository;
 import de.calucon.esi.profile.repository.VehicleRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -106,7 +107,8 @@ public class ProfileService {
         if (!userProfileRepository.existsById(userId)) {
             throw new ProfileNotFoundException(userId);
         }
-        return vehicleRepository.findVerifiedVehiclesByUserId(userId).stream()
+        return vehicleRepository
+                .findByUserProfileUserIdAndVerificationStatus(userId, Vehicle.VerificationStatus.SUCCESS).stream()
                 .map(VehicleResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -119,7 +121,7 @@ public class ProfileService {
 
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .filter(v -> v.getUserProfile() != null && userId.equals(v.getUserProfile().getUserId()))
-                .orElseThrow(jakarta.persistence.EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException(vehicleId.toString()));
 
         return VehicleResponse.fromEntity(vehicle);
     }
@@ -134,9 +136,19 @@ public class ProfileService {
                 .make(request.getMake())
                 .model(request.getModel())
                 .licensePlate(request.getLicensePlate())
-                .isVerified(false)
+                .verificationStatus(Vehicle.VerificationStatus.PENDING)
                 .build();
 
+        vehicle = vehicleRepository.save(vehicle);
+        return VehicleResponse.fromEntity(vehicle);
+    }
+
+    @Transactional
+    public VehicleResponse verifyVehicle(UUID vehicleId, Vehicle.VerificationStatus status) {
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException(vehicleId.toString()));
+
+        vehicle.setVerificationStatus(status);
         vehicle = vehicleRepository.save(vehicle);
         return VehicleResponse.fromEntity(vehicle);
     }

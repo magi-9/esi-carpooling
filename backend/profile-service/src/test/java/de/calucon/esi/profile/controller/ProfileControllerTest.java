@@ -35,6 +35,7 @@ import de.calucon.esi.profile.dto.UpdateProfileRequest;
 import de.calucon.esi.profile.dto.UserProfileResponse;
 import de.calucon.esi.profile.dto.VehicleResponse;
 import de.calucon.esi.profile.entity.UserProfile;
+import de.calucon.esi.profile.entity.Vehicle;
 import de.calucon.esi.profile.exception.GlobalExceptionHandler;
 import de.calucon.esi.profile.exception.ProfileNotFoundException;
 import de.calucon.esi.profile.service.ProfileService;
@@ -131,8 +132,10 @@ class ProfileControllerTest {
     @Test
     @DisplayName("GET /profiles/{userId}/vehicles - Success: Returns All Vehicles")
     void getVehicles_ReturnsAll() throws Exception {
-        VehicleResponse v1 = VehicleResponse.builder().make("Audi").isVerified(false).build();
-        VehicleResponse v2 = VehicleResponse.builder().make("Tesla").isVerified(true).build();
+        VehicleResponse v1 = VehicleResponse.builder().make("Audi")
+                .verificationStatus(Vehicle.VerificationStatus.PENDING).build();
+        VehicleResponse v2 = VehicleResponse.builder().make("Tesla")
+                .verificationStatus(Vehicle.VerificationStatus.SUCCESS).build();
 
         when(profileService.getVehicles(userId)).thenReturn(List.of(v1, v2));
 
@@ -140,7 +143,7 @@ class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].make").value("Audi"))
-                .andExpect(jsonPath("$[0].isVerified").value(false));
+                .andExpect(jsonPath("$[0].verificationStatus").value("PENDING"));
     }
 
     @Test
@@ -148,7 +151,7 @@ class ProfileControllerTest {
     void getVerifiedVehicles_Success() throws Exception {
         VehicleResponse verifiedVehicle = VehicleResponse.builder()
                 .make("Tesla")
-                .isVerified(true)
+                .verificationStatus(Vehicle.VerificationStatus.SUCCESS)
                 .build();
 
         when(profileService.getVerifiedVehicles(userId)).thenReturn(List.of(verifiedVehicle));
@@ -156,7 +159,7 @@ class ProfileControllerTest {
         mockMvc.perform(get("/profiles/{userId}/vehicles/verified", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].isVerified").value(true))
+                .andExpect(jsonPath("$[0].verificationStatus").value("SUCCESS"))
                 .andExpect(jsonPath("$[0].make").value("Tesla"));
     }
 
@@ -164,7 +167,8 @@ class ProfileControllerTest {
     @DisplayName("POST /profiles/{userId}/vehicles - Success: Add new vehicle")
     void addVehicle_Success() throws Exception {
         CreateVehicleRequest req = new CreateVehicleRequest("BMW", "i3", "ABC-1234");
-        VehicleResponse res = VehicleResponse.builder().make("BMW").isVerified(false).build();
+        VehicleResponse res = VehicleResponse.builder().make("BMW")
+                .verificationStatus(Vehicle.VerificationStatus.PENDING).build();
 
         when(profileService.addVehicle(eq(userId), any())).thenReturn(res);
 

@@ -5,25 +5,40 @@
 set -e
 
 RDB="docker exec esi-carpooling-postgre_db-1 psql -U postgres -d esi2023 -c"
-PDB="docker exec esi-profile-db psql -U profile_user -d profile_db -c"
+PDB="docker exec -e PGPASSWORD=WG2RwqeUXveDWnheYdCwu9AFZaMUf37m esi-profile-db psql -U AbEm3dXZ87Xsq7Y3 -d profile_db -c"
 REVDB="docker exec esi-carpooling-review-service-db-1 psql -U reviews -d reviews -c"
 
 echo "=== Create users via auth API ==="
 register_or_login() {
-  local email=$1
-  local password=$2
-  local roles=$3
-  local resp=$(curl -s -X POST http://localhost:8086/api/auth/register \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$email\",\"password\":\"$password\",\"roles\":$roles}")
-  if echo "$resp" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null | grep -q "token"; then
-    echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
-  else
-    curl -s -X POST http://localhost:8086/api/auth/login \
-      -H "Content-Type: application/json" \
-      -d "{\"email\":\"$email\",\"password\":\"$password\"}" \
-      | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
-  fi
+	local email=$1
+	local password=$2
+	local roles=$3
+
+	local resp=$(curl -s -X POST http://localhost:8086/api/auth/register \
+		-H "Content-Type: application/json" \
+		-d "{\"email\":\"$email\",\"password\":\"$password\",\"roles\":$roles}")
+	if echo "$resp" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null | grep -q "token"; then
+		echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
+	else
+		curl -s -X POST http://localhost:8086/api/auth/login \
+			-H "Content-Type: application/json" \
+			-d "{\"email\":\"$email\",\"password\":\"$password\"}" |
+			python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
+	fi
+	local email=$1
+	local password=$2
+	local roles=$3
+	local resp=$(curl -s -X POST http://localhost:8086/api/auth/register \
+		-H "Content-Type: application/json" \
+		-d "{\"email\":\"$email\",\"password\":\"$password\",\"roles\":$roles}")
+	if echo "$resp" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null | grep -q "token"; then
+		echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
+	else
+		curl -s -X POST http://localhost:8086/api/auth/login \
+			-H "Content-Type: application/json" \
+			-d "{\"email\":\"$email\",\"password\":\"$password\"}" |
+			python3 -c "import sys,json; print(json.load(sys.stdin)['token'])"
+	fi
 }
 
 DRIVER_TOKEN=$(register_or_login "driver@test.com" "password123" '["DRIVER"]')
@@ -60,8 +75,8 @@ ON CONFLICT DO NOTHING;
 echo ""
 echo "=== Create verified vehicle (profile DB) ==="
 $PDB "
-INSERT INTO vehicles (vehicle_id, user_id, make, model, license_plate, is_verified)
-VALUES ('11111111-1111-1111-1111-111111111111', '$DRIVER_ID', 'Toyota', 'Camry', 'ABC-123', true)
+INSERT INTO vehicles (vehicle_id, user_id, make, model, license_plate, verification_status)
+VALUES ('11111111-1111-1111-1111-111111111111', '$DRIVER_ID', 'Toyota', 'Camry', 'ABC-123', 'SUCCESS')
 ON CONFLICT DO NOTHING;
 "
 

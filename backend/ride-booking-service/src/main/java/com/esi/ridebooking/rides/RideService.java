@@ -13,11 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
-import com.esi.ridebooking.exception.ServiceUnavailableException;
-
 import com.esi.ridebooking.bookings.Booking;
 import com.esi.ridebooking.bookings.BookingDto;
 import com.esi.ridebooking.bookings.BookingRepository;
+import com.esi.ridebooking.exception.ServiceUnavailableException;
 import com.esi.ridebooking.util.JwtService;
 
 @Service
@@ -75,8 +74,8 @@ public class RideService {
 				throw new IllegalArgumentException("Vehicle not found");
 			}
 
-			Boolean isVerified = (Boolean) vehicle.get("isVerified");
-			if (isVerified == null || !isVerified) {
+			String verificationStatus = (String) vehicle.get("verificationStatus");
+			if (!"SUCCESS".equals(verificationStatus)) {
 				throw new IllegalArgumentException("Vehicle must be verified before creating a ride");
 			}
 		} catch (ServiceUnavailableException e) {
@@ -145,7 +144,8 @@ public class RideService {
 				.filter(ride -> departureDate == null ||
 						(ride.getRideStartDate() != null &&
 								!ride.getRideStartDate().isBefore(departureDate.toLocalDate().atStartOfDay()) &&
-								ride.getRideStartDate().isBefore(departureDate.toLocalDate().plusDays(1).atStartOfDay())))
+								ride.getRideStartDate()
+										.isBefore(departureDate.toLocalDate().plusDays(1).atStartOfDay())))
 				.filter(ride -> seatsNeeded == null || ride.hasAvailableSeats())
 				.filter(ride -> maxPricePerSeat == null ||
 						(ride.getSeatPriceAmount() != null

@@ -56,7 +56,7 @@
 import { ref } from 'vue';
 import { NButton, NUpload, NAlert, NDivider, NTag } from 'naive-ui';
 import { useAuthStore } from '@/stores/auth';
-import { createValidation } from '@/services/validationApi';
+import { createValidation } from '@/api/validationApi';
 
 const props = defineProps({
   vehicle: {

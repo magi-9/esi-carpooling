@@ -9,6 +9,7 @@ const authHeader = () => ({
 });
 
 export const getMyBookings = () => client.get('/api/bookings', { headers: authHeader() });
+export const cancelBooking = (bookingId) => client.delete(`/api/bookings/${bookingId}`, { headers: authHeader() });
 export const getMyRides = () => {
   const userId = JSON.parse(atob((localStorage.getItem('jwt_token') || '.').split('.')[1] + '=='))?.sub;
   return client.get(`/api/rides?status=COMPLETED`, { headers: authHeader() });

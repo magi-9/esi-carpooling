@@ -11,4 +11,5 @@ const authHeader = () => ({
 export const getReviews = (params) => client.get('/api/reviews', { params, headers: authHeader() });
 export const getReview = (reviewId) => client.get(`/api/reviews/${reviewId}`, { headers: authHeader() });
 export const createReview = (reviewData) => client.post('/api/reviews', reviewData, { headers: authHeader() });
+export const updateReview = (reviewId, reviewData) => client.put(`/api/reviews/${reviewId}`, reviewData, { headers: authHeader() });
 export const deleteReview = (reviewId) => client.delete(`/api/reviews/${reviewId}`, { headers: authHeader() });

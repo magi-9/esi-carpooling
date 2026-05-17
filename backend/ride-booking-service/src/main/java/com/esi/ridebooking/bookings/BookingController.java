@@ -26,14 +26,21 @@ public class BookingController {
         return bookingService.getBookingsByPassengerId(userId);
     }
 
+    @GetMapping("/ride/{rideId}")
+    public List<BookingDto> getBookingsForRide(@PathVariable UUID rideId, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return bookingService.getBookingsByRideId(rideId, userId);
+    }
+
     @GetMapping("/{bookingId}")
     public ResponseEntity<BookingDto> getBooking(@PathVariable UUID bookingId) {
         return ResponseEntity.ok(bookingService.getBookingById(bookingId));
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable UUID bookingId) {
-        bookingService.deleteBooking(bookingId);
+    public ResponseEntity<Void> deleteBooking(@PathVariable UUID bookingId, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        bookingService.deleteBooking(bookingId, userId);
         return ResponseEntity.noContent().build();
     }
 }

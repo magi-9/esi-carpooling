@@ -188,9 +188,18 @@ public class RideService {
 		return mapToDto(ride);
 	}
 
-	public RideDto updateRide(UUID rideId, RideDto dto) {
+	public RideDto updateRide(UUID rideId, RideDto dto, String authHeader) {
+		UUID userId = jwtService.extractUserId(authHeader);
 		Ride ride = rideRepository.findById(rideId)
 				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
+
+		if (!ride.getDriverId().equals(userId)) {
+			throw new IllegalArgumentException("You can only update your own rides");
+		}
+
+		if ("COMPLETED".equals(ride.getStatus()) || "CANCELLED".equals(ride.getStatus())) {
+			throw new IllegalArgumentException("Cannot modify a completed or cancelled ride");
+		}
 
 		// Only allow updating mutable fields: date, price, currency, status
 		// Do NOT allow updating: driverId, vehicleId, availableSeats (immutable)
@@ -199,12 +208,31 @@ public class RideService {
 		ride.setSeatPriceCurrency(dto.getSeatPriceCurrency());
 		ride.setStatus(dto.getStatus());
 
+		if ("COMPLETED".equals(dto.getStatus())) {
+			List<Booking> rideBookings = bookingRepository.findByRideRideId(rideId);
+			for (Booking b : rideBookings) {
+				if ("CONFIRMED".equals(b.getStatus())) {
+					b.setStatus("COMPLETED");
+					bookingRepository.save(b);
+				}
+			}
+		}
+
 		return mapToDto(rideRepository.save(ride));
 	}
 
-	public void deleteRide(UUID rideId) {
+	public void deleteRide(UUID rideId, String authHeader) {
+		UUID userId = jwtService.extractUserId(authHeader);
 		Ride ride = rideRepository.findById(rideId)
 				.orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ride not found"));
+
+		if (!ride.getDriverId().equals(userId)) {
+			throw new IllegalArgumentException("You can only delete your own rides");
+		}
+
+		if ("COMPLETED".equals(ride.getStatus())) {
+			throw new IllegalArgumentException("Cannot delete a completed ride");
+		}
 
 		// 1. Cancel all bookings for this ride
 		List<Booking> bookings = bookingRepository.findByRideRideId(rideId);
@@ -238,6 +266,10 @@ public class RideService {
 
 		if (!ride.hasAvailableSeats()) {
 			throw new IllegalArgumentException("No seats available for this ride");
+		}
+
+		if (passengerId.equals(ride.getDriverId())) {
+			throw new IllegalArgumentException("You cannot book your own ride");
 		}
 
 		// 4. Check for duplicate booking - prevent same passenger booking same ride

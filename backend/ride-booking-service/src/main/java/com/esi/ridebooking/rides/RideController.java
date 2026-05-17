@@ -57,13 +57,13 @@ public class RideController {
     }
 
     @PutMapping("/{rideId}")
-    public ResponseEntity<RideDto> updateRide(@PathVariable UUID rideId, @RequestBody RideDto dto) {
-        return ResponseEntity.ok(rideService.updateRide(rideId, dto));
+    public ResponseEntity<RideDto> updateRide(@PathVariable UUID rideId, @RequestHeader(value = "Authorization", required = false) String authHeader, @RequestBody RideDto dto) {
+        return ResponseEntity.ok(rideService.updateRide(rideId, dto, authHeader));
     }
 
     @DeleteMapping("/{rideId}")
-    public ResponseEntity<Void> deleteRide(@PathVariable UUID rideId) {
-        rideService.deleteRide(rideId);
+    public ResponseEntity<Void> deleteRide(@PathVariable UUID rideId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        rideService.deleteRide(rideId, authHeader);
         return ResponseEntity.noContent().build();
     }
 

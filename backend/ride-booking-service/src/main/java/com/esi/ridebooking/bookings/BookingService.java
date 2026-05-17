@@ -7,6 +7,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.esi.ridebooking.rides.Ride;
+import com.esi.ridebooking.rides.RideRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -14,6 +17,9 @@ public class BookingService {
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    @Autowired
+    private RideRepository rideRepository;
 
     public List<BookingDto> getAllBookings() {
         return bookingRepository.findAll().stream()
@@ -33,9 +39,22 @@ public class BookingService {
         return toDto(booking);
     }
 
-    public void deleteBooking(UUID bookingId) {
-        if (!bookingRepository.existsById(bookingId)) {
-            throw new EntityNotFoundException("Booking not found");
+    public List<BookingDto> getBookingsByRideId(UUID rideId, UUID userId) {
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride not found"));
+        if (!ride.getDriverId().equals(userId)) {
+            throw new IllegalArgumentException("You can only view bookings for your own rides");
+        }
+        return bookingRepository.findByRideRideId(rideId).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteBooking(UUID bookingId, UUID userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
+        if (!booking.getPassengerId().equals(userId)) {
+            throw new IllegalArgumentException("You can only cancel your own bookings");
         }
         bookingRepository.deleteById(bookingId);
     }

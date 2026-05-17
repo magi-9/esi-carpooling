@@ -49,6 +49,9 @@ public class RideService {
 	@Value("${payment.service.url:http://localhost:8081}")
 	private String paymentServiceUrl;
 
+	@Value("${gateway.service.url:http://localhost:8080}")
+	private String apiGatewayUrl;
+
 	public RideDto createRide(CreateRideRequest request, String authHeader) {
 		// 1. Validate user has DRIVER role using local JWT parsing
 		// Token is already validated by Spring Security OAuth2 Resource Server
@@ -261,12 +264,13 @@ public class RideService {
 		try {
 			Map<String, Object> paymentRequest = Map.of(
 					"bookingId", savedBooking.getBookingId(),
+					"payerId", passengerId,
+					"payeeId", ride.getDriverId(),
 					"amount", ride.getSeatPriceAmount(),
-					"currency", ride.getSeatPriceCurrency(),
-					"payerId", passengerId);
+					"currency", ride.getSeatPriceCurrency());
 
 			Map<String, Object> paymentResponse = restClientBuilder.build().post()
-					.uri(paymentServiceUrl + "/payments/authorize")
+					.uri(apiGatewayUrl + "/api/payments/authorize")
 					.header("Authorization", authHeader)
 					.body(paymentRequest)
 					.retrieve()

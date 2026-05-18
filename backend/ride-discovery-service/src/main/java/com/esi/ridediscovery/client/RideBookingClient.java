@@ -8,8 +8,10 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class RideBookingClient {
@@ -31,6 +33,7 @@ public class RideBookingClient {
             String destLon,
             String departureDate,
             int seatsNeeded,
+            BigDecimal maxPricePerSeat,
             String authHeader) {
         try {
             List<RideDto> rides = restClient.get()
@@ -38,10 +41,11 @@ public class RideBookingClient {
                             .path("/rides")
                             .queryParam("originLat", originLat)
                             .queryParam("originLon", originLon)
-                    .queryParam("destinationLat", destLat)
-                    .queryParam("destinationLon", destLon)
+                            .queryParam("destinationLat", destLat)
+                            .queryParam("destinationLon", destLon)
                             .queryParam("departureDate", departureDate)
-                    .queryParam("seatsNeeded", seatsNeeded)
+                            .queryParam("seatsNeeded", seatsNeeded)
+                            .queryParamIfPresent("maxPricePerSeat", Optional.ofNullable(maxPricePerSeat))
                             .build())
                     // Do not forward auth header - GET /rides is public on ride-booking-service
                     .retrieve()

@@ -7,7 +7,9 @@ Manages the complete payment lifecycle after a ride is completed, including tran
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/payments` | Initiate a payment for a completed ride |
+| GET | `/payments?payerId={userId}` | List payments where the user is the payer |
 | GET | `/payments/{paymentId}` | Get payment details |
+| PATCH | `/payments/{paymentId}/complete` | Capture a previously authorized payment |
 | POST | `/payments/{paymentId}/refunds` | Request a refund for a completed payment |
 | GET | `/payments/{paymentId}/refunds` | Get refund details |
 | POST | `/payments/authorize` | Authorize a transaction and place a temporary hold |
@@ -22,7 +24,9 @@ INITIATED ──► PROCESSING ──► COMPLETED ──► REFUNDED
 
 - `POST /payments` creates a completed payment record for the approved flow.
 - `POST /payments/authorize` creates a processing payment that can be captured later.
+- `PATCH /payments/{paymentId}/complete` captures a processing payment.
 - Only `COMPLETED` payments can be refunded.
+- Payment creation validates the referenced booking through the Ride Booking Service.
 
 ## Domain Model
 
@@ -34,7 +38,7 @@ INITIATED ──► PROCESSING ──► COMPLETED ──► REFUNDED
 ## Running Locally
 
 ```bash
-cd payment-service
+cd backend/payment-service
 mvn spring-boot:run
 ```
 
@@ -61,6 +65,21 @@ JDBC URL: `jdbc:h2:mem:paymentdb`
 mvn test
 ```
 
+## Running with Docker Compose
+
+From the repository root, run the whole system:
+
+```bash
+docker compose up --build payment-service
+```
+
+The service-level compose file can also be used by itself for payment + Postgres:
+
+```bash
+cd backend/payment-service
+docker compose up --build
+```
+
 ## Production (Postgres)
 
 Set these env vars:
@@ -75,4 +94,4 @@ JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 ## Implementation Notes
 
 - The service persists payments in its own database through JPA.
-- The controller currently exposes initiate, authorize, get-payment, refund-create, and refund-get routes.
+- The controller exposes initiate, authorize, complete, list-by-payer, get-payment, refund-create, and refund-get routes.

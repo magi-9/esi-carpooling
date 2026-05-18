@@ -39,7 +39,7 @@ class SearchControllerIntegrationTest {
     @Test
     void getSearch_returnsSearchResult() throws Exception {
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of(
+                anyString(), anyInt(), any(), any())).thenReturn(List.of(
                 new RideDto("r1", "d1", 59.4, 24.7, "Tallinn",
                         58.4, 26.7, "Tartu", "2026-05-01T10:00", BigDecimal.TEN, 2)
         ));
@@ -61,7 +61,7 @@ class SearchControllerIntegrationTest {
     @Test
     void search_withCoordinatePairOnly_returns200() throws Exception {
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of());
+                anyString(), anyInt(), any(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/search")
                         .param("originLat", "59.4")
@@ -79,7 +79,7 @@ class SearchControllerIntegrationTest {
         when(geolocationClient.geocode("Tartu", null))
                 .thenReturn(new com.esi.ridediscovery.domain.Location(58.4, 26.7, "Tartu"));
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of());
+                anyString(), anyInt(), any(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/search")
                         .param("originAddress", "Tallinn")
@@ -93,7 +93,7 @@ class SearchControllerIntegrationTest {
     @Test
         void search_withBothPairs_returns200() throws Exception {
                 when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                                anyString(), anyInt(), any())).thenReturn(List.of());
+                                anyString(), anyInt(), any(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/search")
                         .param("originLat", "59.4")
@@ -115,7 +115,7 @@ class SearchControllerIntegrationTest {
     @Test
     void search_zeroSeatsUsesDefaultSeatCount() throws Exception {
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of());
+                anyString(), anyInt(), any(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/search")
                         .param("originLat", "59.4")

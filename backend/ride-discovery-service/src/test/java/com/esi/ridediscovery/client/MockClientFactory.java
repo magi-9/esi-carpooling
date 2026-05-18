@@ -26,7 +26,7 @@ public class MockClientFactory {
         RideBookingClient client = Mockito.mock(RideBookingClient.class);
         
         Mockito.when(client.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of(
+                anyString(), anyInt(), any(), any())).thenReturn(List.of(
                 new RideDto("ride-1", "driver-1", 59.4, 24.7, "Tallinn",
                         58.4, 26.7, "Tartu", "2026-05-01T10:00", BigDecimal.valueOf(20), 2),
                 new RideDto("ride-2", "driver-2", 59.35, 24.65, "Tallinn Center",
@@ -45,7 +45,7 @@ public class MockClientFactory {
         RideBookingClient client = Mockito.mock(RideBookingClient.class);
         
         Mockito.when(client.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenReturn(List.of());
+                anyString(), anyInt(), any(), any())).thenReturn(List.of());
         
         return client;
     }

@@ -15,6 +15,7 @@ import com.esi.payment.exception.InvalidStateTransitionException;
 import com.esi.payment.exception.PaymentNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,6 +49,10 @@ public class PaymentService {
         Payment payment = Payment.authorize(req.bookingId(), req.payerId(), req.payeeId(), money);
         Payment saved = paymentRepository.save(payment);
         return toResponse(saved);
+    }
+
+    public List<PaymentResponse> getPaymentsByUser(String payerId) {
+        return paymentRepository.findByPayerId(payerId).stream().map(this::toResponse).toList();
     }
 
     public PaymentResponse getPayment(UUID paymentId) {

@@ -56,6 +56,7 @@ public class SearchService {
                     String.valueOf(resolvedDestination.longitude()),
                     departureDate,
                     resolvedCriteria.seatsNeeded(),
+                    resolvedCriteria.maxPricePerSeat(),
                     authHeader
                 );
 

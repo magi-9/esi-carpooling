@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ride-discovery-service:
     build: .
@@ -15,3 +13,8 @@ services:
     networks:
       - esi-network
     restart: unless-stopped
+
+networks:
+  esi-network:
+    driver: bridge
+    name: esi-network

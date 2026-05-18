@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +53,7 @@ class SearchServiceTest {
                 "2026-05-01T10:00", BigDecimal.valueOf(15), 3);
 
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), anyString())).thenReturn(List.of(ride));
+                anyString(), anyInt(), any(), anyString())).thenReturn(List.of(ride));
         when(reviewClient.getDriverRating(anyString(), anyString())).thenReturn(4.2);
 
         RideSearch result = searchService.search(buildCriteria(), "passenger-1", "Bearer token");
@@ -59,12 +61,22 @@ class SearchServiceTest {
         assertThat(result.getStatus()).isEqualTo(SearchStatus.COMPLETED);
         assertThat(result.getRecommendations()).hasSize(1);
         assertThat(result.getRecommendations().get(0).getDriverRating()).isEqualTo(4.2);
+        verify(rideBookingClient).searchRides(
+                eq("59.4"),
+                eq("24.7"),
+                eq("58.4"),
+                eq("26.7"),
+                anyString(),
+                eq(1),
+                eq(BigDecimal.valueOf(30)),
+                eq("Bearer token")
+        );
     }
 
     @Test
     void search_withNoRides_returnsCompletedEmpty() {
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                                anyString(), anyInt(), any())).thenReturn(List.of());
+                                anyString(), anyInt(), any(), any())).thenReturn(List.of());
 
         RideSearch result = searchService.search(buildCriteria(), "passenger-1", null);
 
@@ -75,7 +87,7 @@ class SearchServiceTest {
     @Test
     void search_whenClientThrows_returnsFailed() {
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), any())).thenThrow(new RuntimeException("service down"));
+                anyString(), anyInt(), any(), any())).thenThrow(new RuntimeException("service down"));
 
         RideSearch result = searchService.search(buildCriteria(), "passenger-1", null);
 
@@ -90,7 +102,7 @@ class SearchServiceTest {
                 58.4, 26.7, "B", "2026-05-01T10:00", BigDecimal.valueOf(25), 1);
 
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), anyString())).thenReturn(List.of(expensiveRide, cheapRide));
+                anyString(), anyInt(), any(), anyString())).thenReturn(List.of(expensiveRide, cheapRide));
         when(reviewClient.getDriverRating("driver-a", "tok")).thenReturn(5.0);
         when(reviewClient.getDriverRating("driver-b", "tok")).thenReturn(2.0);
 
@@ -117,7 +129,7 @@ class SearchServiceTest {
         when(geolocationClient.geocode("Tartu", "tok"))
                 .thenReturn(new Location(58.4, 26.7, "Tartu"));
         when(rideBookingClient.searchRides(anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), anyString())).thenReturn(List.of());
+                anyString(), anyInt(), any(), anyString())).thenReturn(List.of());
 
         RideSearch result = searchService.search(addressOnlyCriteria, "p1", "tok");
 

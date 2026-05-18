@@ -24,4 +24,4 @@ server:
     port: ${PORT:8081}
 
 clients:
-    booking-service-url: ${BOOKING_SERVICE_URL:http://esi-carpooling-ride-booking-service-1:8080}
+    booking-service-url: ${BOOKING_SERVICE_URL:http://localhost:8083}

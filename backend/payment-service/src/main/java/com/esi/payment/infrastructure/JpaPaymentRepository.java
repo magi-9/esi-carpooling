@@ -4,6 +4,7 @@ import com.esi.payment.domain.Payment;
 import com.esi.payment.domain.PaymentRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,5 +34,10 @@ public class JpaPaymentRepository implements PaymentRepository {
     @Override
     public Optional<Payment> findByBookingId(String bookingId) {
         return springDataRepo.findByBookingId(bookingId).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Payment> findByPayerId(String payerId) {
+        return springDataRepo.findByPayerId(payerId).stream().map(mapper::toDomain).toList();
     }
 }

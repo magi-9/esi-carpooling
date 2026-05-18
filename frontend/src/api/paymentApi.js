@@ -21,3 +21,6 @@ export const requestRefund = (paymentId, data) =>
 
 export const getRefund = (paymentId) =>
   client.get(`/api/payments/${paymentId}/refunds`, { headers: authHeader() });
+
+export const getPaymentsByUser = (payerId) =>
+  client.get('/api/payments', { params: { payerId }, headers: authHeader() });

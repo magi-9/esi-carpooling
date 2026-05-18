@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api-gateway-service:
     build: .
@@ -16,11 +14,11 @@ services:
       - REVIEW_SERVICE_URL=http://review-service:8080
       - GEOLOCATION_SERVICE_URL=http://geolocation-service:8080
       - VALIDATION_SERVICE_URL=http://validation-service:8080
-    depends_on:
-      payment-service:
-        condition: service_started
-      ride-discovery-service:
-        condition: service_started
     networks:
       - esi-network
     restart: unless-stopped
+
+networks:
+  esi-network:
+    driver: bridge
+    name: esi-network

@@ -26,8 +26,8 @@
           <router-link to="/bookings" style="text-decoration: none">
             <n-button text style="color: #ecf0f1">My Bookings</n-button>
           </router-link>
-          <router-link to="/payments/new" style="text-decoration: none">
-            <n-button text style="color: #ecf0f1">New Payment</n-button>
+          <router-link to="/payments" style="text-decoration: none">
+            <n-button text style="color: #ecf0f1">My Payments</n-button>
           </router-link>
         </n-space>
       </n-space>

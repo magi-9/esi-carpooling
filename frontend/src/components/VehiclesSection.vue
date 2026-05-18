@@ -23,9 +23,12 @@ eslint-disable vue/no-mutating-props
                     {{ vehicle.licensePlate }}
                   </div>
                 </div>
-                <n-tag :type="getVerificationColor(vehicle.verificationStatus)">
-                  {{ vehicle.verificationStatus }}
-                </n-tag>
+                <div style="display:flex; gap:8px; align-items:center">
+                  <n-tag :type="getVerificationColor(vehicle.verificationStatus)">
+                    {{ vehicle.verificationStatus }}
+                  </n-tag>
+                  <n-button size="small" primary @click="retryVehicle(vehicle)" :loading="retrying[vehicle.vehicleId]" v-if="vehicle.verificationStatus === 'FAILED'">Retry</n-button>
+                </div>
               </n-space>
               <div v-if="vehicle.verificationStatus !== 'SUCCESS'" style="margin-top: 12px">
                 <VehicleValidation :vehicle="vehicle" />
@@ -83,6 +86,7 @@ import {
   NModal
 } from 'naive-ui';
 import VehicleValidation from '@/components/VehicleValidation.vue';
+import { getValidationsByVehicle, retryValidation } from '@/api/validationApi';
 
 const props = defineProps({
   vehicles: {
@@ -109,6 +113,7 @@ const props = defineProps({
 
 // Methods
 const showModal = ref(false);
+const retrying = ref({});
 
 const submitForm = async () => {
   await props.addNewVehicle();
@@ -126,6 +131,29 @@ const getVerificationColor = (status) => {
   };
   return colors[status] || 'default';
 };
+
+async function retryVehicle(vehicle) {
+  try {
+    retrying.value[vehicle.vehicleId] = true;
+    const resp = await getValidationsByVehicle(vehicle.vehicleId);
+    const list = resp.data || [];
+    // find a failed request (isApproved === false)
+    const failed = list.find((r) => r.isApproved === false);
+    if (!failed) {
+      alert('No failed validation request found to retry.');
+      retrying.value[vehicle.vehicleId] = false;
+      return;
+    }
+
+    await retryValidation(failed.requestId);
+    // Optimistically set to pending so UI reflects retry
+    vehicle.verificationStatus = 'PENDING';
+  } catch (e) {
+    console.error('Retry failed', e);
+  } finally {
+    retrying.value[vehicle.vehicleId] = false;
+  }
+}
 </script>
 
 <style scoped>

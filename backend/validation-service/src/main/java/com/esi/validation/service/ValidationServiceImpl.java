@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Objects;
+
+import com.esi.validation.event.EventPublisher;
 
 import com.esi.validation.dto.CreateVerificationRequestDTO;
 import com.esi.validation.dto.VerificationRequestDTO;
@@ -22,11 +25,13 @@ public class ValidationServiceImpl implements ValidationService {
     private final VerificationRequestRepository repository;
     private final ValidationMapper mapper;
     private final ValidationProcessor processor;
+    private final EventPublisher publisher;
 
-    public ValidationServiceImpl(VerificationRequestRepository repository, ValidationMapper mapper, ValidationProcessor processor) {
+    public ValidationServiceImpl(VerificationRequestRepository repository, ValidationMapper mapper, ValidationProcessor processor, EventPublisher publisher) {
         this.repository = repository;
         this.mapper = mapper;
         this.processor = processor;
+        this.publisher = publisher;
     }
 
     @Override
@@ -47,6 +52,23 @@ public class ValidationServiceImpl implements ValidationService {
                     throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Failed to read uploaded file", e);
                 }
             }
+        }
+
+        // If any uploaded filename contains "FAIL" (case-insensitive) treat as immediate failure
+        boolean hasFail = entity.getDocuments() != null && entity.getDocuments().stream()
+                .filter(Objects::nonNull)
+                .anyMatch(d -> d.getFileName() != null && d.getFileName().toLowerCase().contains("fail"));
+
+        if (hasFail) {
+            entity.setStatus("COMPLETED");
+            entity.setIsApproved(Boolean.FALSE);
+            VerificationRequest saved = repository.save(entity);
+            try {
+                publisher.publishValidationFailure(saved.getUserId(), saved.getVehicleId(), "filename contains FAIL");
+            } catch (Exception e) {
+                System.out.println("Failed to publish immediate validation failure: " + e.getMessage());
+            }
+            return mapper.toDto(saved);
         }
 
         // mark request as pending and persist
@@ -71,6 +93,23 @@ public class ValidationServiceImpl implements ValidationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Verification request not found"));
         v.setStatus("PENDING");
         v.setIsApproved(Boolean.FALSE);
+        // If the documents still contain a failing filename, short-circuit to failure and publish
+        boolean hasFail = v.getDocuments() != null && v.getDocuments().stream()
+                .filter(Objects::nonNull)
+                .anyMatch(d -> d.getFileName() != null && d.getFileName().toLowerCase().contains("fail"));
+
+        if (hasFail) {
+            v.setStatus("COMPLETED");
+            v.setIsApproved(Boolean.FALSE);
+            VerificationRequest saved = repository.save(v);
+            try {
+                publisher.publishValidationFailure(saved.getUserId(), saved.getVehicleId(), "filename contains FAIL");
+            } catch (Exception e) {
+                System.out.println("Failed to publish validation failure on retry: " + e.getMessage());
+            }
+            return mapper.toDto(saved);
+        }
+
         VerificationRequest saved = repository.save(v);
 
         // process verification asynchronously (non-blocking)
@@ -79,7 +118,7 @@ public class ValidationServiceImpl implements ValidationService {
         } catch (Exception e) {
             System.out.println("Failed to start async verification: " + e.getMessage());
         }
-        
+
         return mapper.toDto(saved);
     }
 

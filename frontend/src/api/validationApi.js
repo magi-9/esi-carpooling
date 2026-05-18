@@ -36,4 +36,12 @@ export async function createValidation(payload, files = []) {
   return validationApi.post('/api/validation', form);
 }
 
-export default { createValidation };
+export async function getValidationsByVehicle(vehicleId) {
+  return validationApi.get('/api/validation', { params: { vehicleId } });
+}
+
+export async function retryValidation(requestId) {
+  return validationApi.post(`/api/validation/${requestId}/retry`);
+}
+
+export default { createValidation, getValidationsByVehicle, retryValidation };

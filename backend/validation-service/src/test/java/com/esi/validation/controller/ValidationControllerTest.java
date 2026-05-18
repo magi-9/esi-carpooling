@@ -6,9 +6,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 
@@ -53,7 +55,8 @@ public class ValidationControllerTest {
 
         when(validationService.createVerification(any(), anyList())).thenReturn(expected);
 
-        mockMvc.perform(multipart("/validation").file(dataPart).file(filePart).contentType(MediaType.MULTIPART_FORM_DATA))
+        mockMvc.perform(multipart("/validation").file(dataPart).file(filePart).contentType(MediaType.MULTIPART_FORM_DATA)
+            .with(jwt().jwt(jwt -> jwt.subject(userId.toString()).claim("roles", List.of("DRIVER")))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.requestId").value(requestId.toString()))
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
@@ -75,7 +78,8 @@ public class ValidationControllerTest {
         when(validationService.createVerification(any(), anyList()))
                 .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "downstream"));
 
-        mockMvc.perform(multipart("/validation").file(dataPart).file(filePart).contentType(MediaType.MULTIPART_FORM_DATA))
+        mockMvc.perform(multipart("/validation").file(dataPart).file(filePart).contentType(MediaType.MULTIPART_FORM_DATA)
+            .with(jwt().jwt(jwt -> jwt.subject(userId.toString()).claim("roles", List.of("DRIVER")))))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -83,7 +87,8 @@ public class ValidationControllerTest {
     void createValidation_missingData_returnsBadRequest() throws Exception {
         MockMultipartFile filePart = new MockMultipartFile("files", "id.pdf", "application/pdf", "dummy".getBytes(StandardCharsets.UTF_8));
 
-        mockMvc.perform(multipart("/validation").file(filePart).contentType(MediaType.MULTIPART_FORM_DATA))
+        mockMvc.perform(multipart("/validation").file(filePart).contentType(MediaType.MULTIPART_FORM_DATA)
+            .with(jwt().jwt(jwt -> jwt.subject(UUID.randomUUID().toString()).claim("roles", List.of("DRIVER")))))
                 .andExpect(status().isBadRequest());
 
         verify(validationService, never()).createVerification(any(), anyList());

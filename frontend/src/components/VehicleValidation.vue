@@ -2,7 +2,7 @@
   <div>
     <div style="display: flex; gap: 8px; align-items: center; width: 100%">
       <div style="margin-left: auto">
-        <n-button size="small" secondary @click="s.open = !s.open">Validate</n-button>
+        <n-button size="small" primary @click="s.open = !s.open">New Validation</n-button>
       </div>
     </div>
 
@@ -23,7 +23,7 @@
             >
               <n-button size="small">Upload File</n-button>
             </n-upload>
-            <div v-if="s.licenseFileName" style="color: #666; font-size: 13px">
+            <div v-if="s.licenseFileName" style="flex: 100%; color: #666; font-size: 13px">
               {{ s.licenseFileName }}
             </div>
           </div>
@@ -40,13 +40,14 @@
             >
               <n-button size="small">Upload File</n-button>
             </n-upload>
-            <div v-if="s.registrationFileName" style="color: #666; font-size: 13px">
+            <div v-if="s.registrationFileName" style="flex: 100%; color: #666; font-size: 13px">
               {{ s.registrationFileName }}
             </div>
           </div>
         </div>
 
-        <div style="margin-top: 8px">
+        
+        <div style="margin-top: 8px; display: flex; justify-content: flex-end">
           <n-button type="primary" @click="submitValidation" :loading="s.loading">
             Submit Validation
           </n-button>
@@ -122,8 +123,8 @@ async function submitValidation() {
     files.push(s.value.registrationFile);
     documents.push({ documentType: 'registration' });
   }
-  if (files.length === 0) {
-    s.value.error = 'Attach at least one file';
+  if (files.length < 2) {
+    s.value.error = 'Attach at least two files';
     return;
   }
 

@@ -123,8 +123,8 @@ async function submitValidation() {
     files.push(s.value.registrationFile);
     documents.push({ documentType: 'registration' });
   }
-  if (files.length === 0) {
-    s.value.error = 'Attach at least one file';
+  if (files.length < 2) {
+    s.value.error = 'Attach at least two files';
     return;
   }
 

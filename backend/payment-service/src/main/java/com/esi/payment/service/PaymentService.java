@@ -10,6 +10,7 @@ import com.esi.payment.dto.MoneyResponse;
 import com.esi.payment.dto.PaymentResponse;
 import com.esi.payment.dto.RefundRequest;
 import com.esi.payment.dto.RefundResponse;
+import com.esi.payment.event.PaymentEventPublisher;
 import com.esi.payment.exception.BookingNotFoundException;
 import com.esi.payment.exception.InvalidStateTransitionException;
 import com.esi.payment.exception.PaymentNotFoundException;
@@ -23,10 +24,13 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingClient bookingClient;
+    private final PaymentEventPublisher paymentEventPublisher;
 
-    public PaymentService(PaymentRepository paymentRepository, BookingClient bookingClient) {
+    public PaymentService(PaymentRepository paymentRepository, BookingClient bookingClient,
+                          PaymentEventPublisher paymentEventPublisher) {
         this.paymentRepository = paymentRepository;
         this.bookingClient = bookingClient;
+        this.paymentEventPublisher = paymentEventPublisher;
     }
 
     public PaymentResponse initiatePayment(InitiatePaymentRequest req, String authHeader) {
@@ -37,6 +41,7 @@ public class PaymentService {
         Money money = Money.of(req.amount(), req.currency());
         Payment payment = Payment.initiate(req.bookingId(), req.payerId(), req.payeeId(), money);
         Payment saved = paymentRepository.save(payment);
+        paymentEventPublisher.publishPaymentSuccessful(saved);
         return toResponse(saved);
     }
 
@@ -70,6 +75,7 @@ public class PaymentService {
             throw new InvalidStateTransitionException(e.getMessage());
         }
         Payment saved = paymentRepository.save(payment);
+        paymentEventPublisher.publishPaymentSuccessful(saved);
         return toResponse(saved);
     }
 

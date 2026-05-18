@@ -9,6 +9,7 @@ import com.esi.payment.dto.InitiatePaymentRequest;
 import com.esi.payment.dto.PaymentResponse;
 import com.esi.payment.dto.RefundRequest;
 import com.esi.payment.dto.RefundResponse;
+import com.esi.payment.event.PaymentEventPublisher;
 import com.esi.payment.exception.BookingNotFoundException;
 import com.esi.payment.exception.InvalidStateTransitionException;
 import com.esi.payment.exception.PaymentNotFoundException;
@@ -34,6 +35,7 @@ class PaymentServiceTest {
 
     @Mock private PaymentRepository paymentRepository;
     @Mock private BookingClient bookingClient;
+    @Mock private PaymentEventPublisher paymentEventPublisher;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -54,6 +56,7 @@ class PaymentServiceTest {
         assertThat(response.status()).isEqualTo(PaymentStatus.COMPLETED.name());
         assertThat(response.chargedAmount().amount()).isEqualByComparingTo(BigDecimal.valueOf(50));
         verify(paymentRepository).save(any());
+        verify(paymentEventPublisher).publishPaymentSuccessful(any());
     }
 
     @Test
@@ -104,6 +107,7 @@ class PaymentServiceTest {
         assertThat(response.status()).isEqualTo(PaymentStatus.COMPLETED.name());
         assertThat(response.completedAt()).isNotNull();
         verify(paymentRepository).save(payment);
+        verify(paymentEventPublisher).publishPaymentSuccessful(payment);
     }
 
     @Test

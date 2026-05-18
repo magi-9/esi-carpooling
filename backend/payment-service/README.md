@@ -58,6 +58,28 @@ JDBC URL: `jdbc:h2:mem:paymentdb`
 | `DB_DRIVER` | org.h2.Driver | JDBC driver |
 | `JPA_DIALECT` | H2Dialect | Hibernate dialect |
 | `BOOKING_SERVICE_URL` | http://localhost:8083 | Ride Booking Service URL |
+| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | localhost:9092 | Kafka bootstrap servers |
+
+## Kafka Events
+
+The service publishes `PaymentSuccessfulEvent` to topic `payment-successful-topic` after a successful payment is persisted.
+
+Payload:
+```json
+{
+  "paymentId": "UUID",
+  "bookingId": "string",
+  "payerId": "string",
+  "payeeId": "string",
+  "amount": 50.00,
+  "currency": "EUR",
+  "completedAt": "2026-05-19T12:34:56Z"
+}
+```
+
+Events are emitted by:
+- `POST /payments` when the created payment is immediately `COMPLETED`
+- `PATCH /payments/{paymentId}/complete` when an authorized payment is captured
 
 ## Running Tests
 

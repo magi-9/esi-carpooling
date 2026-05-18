@@ -31,6 +31,7 @@ services:
       - DB_DRIVER=org.postgresql.Driver
       - JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
       - BOOKING_SERVICE_URL=${BOOKING_SERVICE_URL:-http://ride-booking-service:8080}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - PORT=8080
     depends_on:
       payment-db:

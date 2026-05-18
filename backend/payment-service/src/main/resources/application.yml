@@ -19,6 +19,8 @@ spring:
         init:
             mode: always
             schema-locations: classpath:schema.sql
+    kafka:
+        bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
 server:
     port: ${PORT:8081}

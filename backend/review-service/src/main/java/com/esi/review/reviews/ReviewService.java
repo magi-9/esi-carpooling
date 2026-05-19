@@ -52,7 +52,7 @@ public class ReviewService {
 		}
 
 		// Check for duplicate review
-		if (reviewRepository.existsByBookingId(request.getBookingId())) {
+		if (reviewRepository.existsByBookingIdAndDeletedFalse(request.getBookingId())) {
 			throw new IllegalArgumentException("Review already exists for this booking");
 		}
 

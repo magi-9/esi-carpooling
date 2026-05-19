@@ -119,7 +119,7 @@ const editReviewForm = ref({ stars: 5, comment: '' });
 const savingReview = ref(false);
 
 const statusType = (status) => {
-  const map = { PENDING: 'warning', CONFIRMED: 'info', COMPLETED: 'success', CANCELLED: 'error' };
+  const map = { PENDING: 'warning', PAID: 'info', CONFIRMED: 'info', COMPLETED: 'success', CANCELLED: 'error' };
   return map[status] || 'default';
 };
 

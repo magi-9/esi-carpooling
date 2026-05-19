@@ -34,16 +34,6 @@
         />
       </div>
       <div style="flex: 1">
-        <label>Seats Needed</label>
-        <input
-          v-model.number="form.seatsNeeded"
-          type="number"
-          min="1"
-          max="8"
-          style="width: 100%; padding: 8px; margin-top: 4px"
-        />
-      </div>
-      <div style="flex: 1">
         <label>Max Price/Seat (€)</label>
         <input
           v-model.number="form.maxPricePerSeat"
@@ -79,7 +69,6 @@ const form = reactive({
   originAddress: '',
   destinationAddress: '',
   departureDate: '',
-  seatsNeeded: 1,
   maxPricePerSeat: null
 });
 
@@ -92,7 +81,7 @@ function submit() {
     destinationLon: null,
     destinationAddress: form.destinationAddress,
     departureDate: form.departureDate,
-    seatsNeeded: form.seatsNeeded,
+    seatsNeeded: 1,
     maxPricePerSeat: form.maxPricePerSeat || undefined
   });
 }

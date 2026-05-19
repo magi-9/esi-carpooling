@@ -5,7 +5,7 @@ const client = axios.create({
 });
 
 const authHeader = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token') || 'dev-token'}`
+  Authorization: `Bearer ${localStorage.getItem('jwt_token') || 'dev-token'}`
 });
 
 export const searchRides = (params) => client.get('/api/search', { params, headers: authHeader() });

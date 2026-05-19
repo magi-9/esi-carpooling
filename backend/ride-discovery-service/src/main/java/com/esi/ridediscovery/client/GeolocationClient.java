@@ -24,9 +24,12 @@ public class GeolocationClient {
 
     public Location geocode(String address, String authHeader) {
         try {
-            Map<String, Object> response = restClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/geocode").queryParam("address", address).build())
-                    .header("Authorization", authHeader != null ? authHeader : "")
+            var request = restClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/geocode").queryParam("address", address).build());
+            if (authHeader != null && !authHeader.isBlank()) {
+                request.header("Authorization", authHeader);
+            }
+            Map<String, Object> response = request
                     .retrieve()
                     .body(Map.class);
 

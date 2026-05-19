@@ -25,7 +25,15 @@
         <n-space align="center">
           <n-tag :type="statusType(ride.status)">{{ ride.status }}</n-tag>
           <template v-if="ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED'">
-            <n-button v-if="ride.status === 'PENDING' || ride.status === 'CONFIRMED'" size="small" type="success" :loading="completing === ride.rideId" @click="handleMarkComplete(ride)">Mark Complete</n-button>
+            <n-button
+              v-if="ride.status === 'PENDING' || ride.status === 'CONFIRMED'"
+              size="small"
+              type="success"
+              :loading="completing === ride.rideId"
+              @click="handleMarkComplete(ride)"
+            >
+              Mark Complete
+            </n-button>
             <n-button size="small" @click="openEditModal(ride)">Edit</n-button>
             <n-popconfirm @positive-click="handleDeleteRide(ride.rideId)">
               <template #trigger>
@@ -50,9 +58,16 @@
         <template v-if="rideBookings(ride.rideId).length === 0">
           <n-text depth="3" style="margin-bottom: 8px">No bookings yet.</n-text>
         </template>
-        <n-card v-for="booking in rideBookings(ride.rideId)" :key="booking.bookingId" size="small" style="margin-bottom: 4px">
+        <n-card
+          v-for="booking in rideBookings(ride.rideId)"
+          :key="booking.bookingId"
+          size="small"
+          style="margin-bottom: 4px"
+        >
           <n-space align="center">
-            <n-tag :type="bookingStatusType(booking.status)" size="small">{{ booking.status }}</n-tag>
+            <n-tag :type="bookingStatusType(booking.status)" size="small">
+              {{ booking.status }}
+            </n-tag>
             <n-text depth="3">Passenger: {{ booking.passengerId.slice(0, 8) }}...</n-text>
           </n-space>
         </n-card>
@@ -96,7 +111,13 @@
       >
         <n-space vertical>
           <n-form-item label="Date & Time">
-            <n-date-picker v-model:value="editForm.rideStartDate" type="datetime" :default-value="editForm.rideStartDate ? new Date(editForm.rideStartDate).getTime() : Date.now()" />
+            <n-date-picker
+              v-model:value="editForm.rideStartDate"
+              type="datetime"
+              :default-value="
+                editForm.rideStartDate ? new Date(editForm.rideStartDate).getTime() : Date.now()
+              "
+            />
           </n-form-item>
           <n-form-item label="Price (EUR)">
             <n-input-number v-model:value="editForm.seatPriceAmount" :min="0" :step="1" />
@@ -145,11 +166,11 @@ const statusOptions = [
 const driverRides = computed(() => {
   const userId = authStore.currentUserId;
   if (!userId) return [];
-  return allRides.value.filter(r => r.driverId === userId);
+  return allRides.value.filter((r) => r.driverId === userId);
 });
 
 const rideReviews = (rideId) => {
-  return allReviews.value.filter(r => r.rideId === rideId);
+  return allReviews.value.filter((r) => r.rideId === rideId);
 };
 
 const rideBookings = (rideId) => {
@@ -157,19 +178,34 @@ const rideBookings = (rideId) => {
 };
 
 const bookingStatusType = (status) => {
-  const map = { PENDING: 'warning', PAID: 'info', CONFIRMED: 'info', COMPLETED: 'success', CANCELLED: 'error' };
+  const map = {
+    PENDING: 'warning',
+    PAID: 'info',
+    CONFIRMED: 'info',
+    COMPLETED: 'success',
+    CANCELLED: 'error'
+  };
   return map[status] || 'default';
 };
 
 const statusType = (status) => {
-  const map = { PENDING: 'warning', PAID: 'info', CONFIRMED: 'info', COMPLETED: 'success', CANCELLED: 'error' };
+  const map = {
+    PENDING: 'warning',
+    PAID: 'info',
+    CONFIRMED: 'info',
+    COMPLETED: 'success',
+    CANCELLED: 'error'
+  };
   return map[status] || 'default';
 };
 
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleString('en-GB', {
-    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 };
 
@@ -232,18 +268,18 @@ const handleDeleteRide = async (rideId) => {
 
 const loadData = async () => {
   const token = localStorage.getItem('jwt_token');
-  const [ridesResp, reviewsResp] = await Promise.allSettled([
-    getRides(),
-    getReviews()
-  ]);
+  const [ridesResp, reviewsResp] = await Promise.allSettled([getRides(), getReviews()]);
   if (ridesResp.status === 'fulfilled') {
     allRides.value = ridesResp.value.data || [];
     // Fetch bookings for each ride
-    for (const ride of allRides.value) {
+    for (const ride of driverRides.value) {
       try {
-        const resp = await fetch(`${import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:8080'}/api/bookings/ride/${ride.rideId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const resp = await fetch(
+          `${import.meta.env.VITE_GATEWAY_API_URL || 'http://localhost:8080'}/api/bookings/ride/${ride.rideId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
         if (resp.ok) allBookings.value[ride.rideId] = await resp.json();
       } catch {}
     }

@@ -10,11 +10,16 @@ import org.springframework.stereotype.Component;
 public class PaymentEventPublisher {
 
     public static final String PAYMENT_SUCCESSFUL_TOPIC = "payment-successful-topic";
+    public static final String PAYMENT_REFUNDED_TOPIC = "payment-refunded-topic";
 
-    private final KafkaTemplate<String, PaymentSuccessfulEvent> kafkaTemplate;
+    private final KafkaTemplate<String, PaymentSuccessfulEvent> successTemplate;
+    private final KafkaTemplate<String, PaymentRefundedEvent> refundTemplate;
 
-    public PaymentEventPublisher(KafkaTemplate<String, PaymentSuccessfulEvent> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
+    public PaymentEventPublisher(
+            KafkaTemplate<String, PaymentSuccessfulEvent> successTemplate,
+            KafkaTemplate<String, PaymentRefundedEvent> refundTemplate) {
+        this.successTemplate = successTemplate;
+        this.refundTemplate = refundTemplate;
     }
 
     public void publishPaymentSuccessful(Payment payment) {
@@ -29,7 +34,7 @@ public class PaymentEventPublisher {
         );
 
         try {
-            kafkaTemplate
+            successTemplate
                     .send(PAYMENT_SUCCESSFUL_TOPIC, payment.getPaymentId().toString(), event)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
@@ -42,6 +47,31 @@ public class PaymentEventPublisher {
                     });
         } catch (Exception ex) {
             log.warn("Skipping PaymentSuccessfulEvent for payment {} because Kafka is unavailable: {}",
+                    payment.getPaymentId(), ex.getMessage());
+        }
+    }
+
+    public void publishPaymentRefunded(Payment payment) {
+        if (payment.getRefund() == null) return;
+        PaymentRefundedEvent event = new PaymentRefundedEvent(
+                payment.getPaymentId(),
+                payment.getBookingId(),
+                payment.getRefund().getRefundId().toString()
+        );
+        try {
+            refundTemplate
+                    .send(PAYMENT_REFUNDED_TOPIC, payment.getPaymentId().toString(), event)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("Failed to publish PaymentRefundedEvent for payment {}: {}",
+                                    payment.getPaymentId(), ex.getMessage());
+                        } else {
+                            log.debug("Published PaymentRefundedEvent for payment {}",
+                                    payment.getPaymentId());
+                        }
+                    });
+        } catch (Exception ex) {
+            log.warn("Skipping PaymentRefundedEvent for payment {} because Kafka is unavailable: {}",
                     payment.getPaymentId(), ex.getMessage());
         }
     }

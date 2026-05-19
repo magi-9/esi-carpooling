@@ -19,13 +19,14 @@ public class RideBookingServiceClient {
     @Value("${clients.ride-booking-service-url}")
     private String rideBookingServiceUrl;
 
-    public BookingDto getBooking(UUID bookingId) {
+    public BookingDto getBooking(UUID bookingId, String authHeader) {
         try {
             return restClientBuilder
                     .baseUrl(rideBookingServiceUrl)
                     .build()
                     .get()
                     .uri("/bookings/{bookingId}", bookingId)
+                    .header("Authorization", authHeader)
                     .retrieve()
                     .body(BookingDto.class);
         } catch (ResourceAccessException e) {

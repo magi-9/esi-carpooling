@@ -93,11 +93,13 @@ public class RideService {
 		try {
 			startCoords = restClientBuilder.build().get()
 					.uri(geolocationServiceUrl + "/geocode?address=" + request.getStartAddress())
+					.header("Authorization", authHeader)
 					.retrieve()
 					.body(Map.class);
 
 			endCoords = restClientBuilder.build().get()
 					.uri(geolocationServiceUrl + "/geocode?address=" + request.getEndAddress())
+					.header("Authorization", authHeader)
 					.retrieve()
 					.body(Map.class);
 		} catch (ResourceAccessException e) {
@@ -211,7 +213,7 @@ public class RideService {
 		if ("COMPLETED".equals(dto.getStatus())) {
 			List<Booking> rideBookings = bookingRepository.findByRideRideId(rideId);
 			for (Booking b : rideBookings) {
-				if ("CONFIRMED".equals(b.getStatus())) {
+				if ("PAID".equals(b.getStatus())) {
 					b.setStatus("COMPLETED");
 					bookingRepository.save(b);
 				}
@@ -282,7 +284,7 @@ public class RideService {
 				.isPresent();
 
 		if (alreadyBooked) {
-			throw new IllegalArgumentException("Passenger already has a booking for this ride");
+			throw new IllegalArgumentException("You already have an active booking for this ride");
 		}
 
 		// 5. Create pending booking
@@ -291,41 +293,6 @@ public class RideService {
 		booking.setPassengerId(passengerId);
 		booking.setStatus("PENDING");
 		Booking savedBooking = bookingRepository.save(booking);
-
-		// 6. Call Payment Service to authorize transaction
-		try {
-			Map<String, Object> paymentRequest = Map.of(
-					"bookingId", savedBooking.getBookingId(),
-					"payerId", passengerId,
-					"payeeId", ride.getDriverId(),
-					"amount", ride.getSeatPriceAmount(),
-					"currency", ride.getSeatPriceCurrency());
-
-			Map<String, Object> paymentResponse = restClientBuilder.build().post()
-					.uri(apiGatewayUrl + "/api/payments/authorize")
-					.header("Authorization", authHeader)
-					.body(paymentRequest)
-					.retrieve()
-					.body(Map.class);
-
-			// 6. Payment succeeded - confirm booking
-			savedBooking.setStatus("CONFIRMED");
-			savedBooking.setPaymentId(UUID.fromString((String) paymentResponse.get("paymentId")));
-			bookingRepository.save(savedBooking);
-
-		} catch (ResourceAccessException e) {
-			// Payment service unreachable - rollback and rethrow as 503
-			bookingRepository.delete(savedBooking);
-			throw new ServiceUnavailableException("Payment service unavailable", e);
-		} catch (com.esi.ridebooking.exception.PaymentException e) {
-			// Payment rejected/invalid - rollback and rethrow
-			bookingRepository.delete(savedBooking);
-			throw e;
-		} catch (Exception e) {
-			// Other errors - rollback and throw payment error
-			bookingRepository.delete(savedBooking);
-			throw new com.esi.ridebooking.exception.PaymentException("Payment authorization failed: " + e.getMessage());
-		}
 
 		return mapBookingToDto(savedBooking);
 	}

@@ -53,14 +53,14 @@ public class Ride {
     public Ride() {
     }
 
-    public int getConfirmedBookingsCount() {
+    public int getActiveBookingsCount() {
         return (int) bookings.stream()
-                .filter(b -> "CONFIRMED".equals(b.getStatus()))
+                .filter(b -> !"CANCELLED".equals(b.getStatus()))
                 .count();
     }
 
     public boolean hasAvailableSeats() {
-        return getConfirmedBookingsCount() < availableSeats;
+        return getActiveBookingsCount() < availableSeats;
     }
 
     public UUID getRideId() {

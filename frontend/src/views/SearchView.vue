@@ -82,7 +82,7 @@ async function handleBook(recommendation) {
       }
     });
   } catch (e) {
-    error.value = e.response?.data?.error || 'Failed to create booking for this ride.';
+    error.value = typeof e.response?.data === 'string' ? e.response.data : (e.response?.data?.error || 'Failed to create booking for this ride.');
   }
 }
 </script>

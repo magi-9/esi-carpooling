@@ -36,7 +36,7 @@ public class ReviewService {
 		}
 
 		// Fetch booking from ride-booking-service
-		BookingDto booking = rideBookingServiceClient.getBooking(request.getBookingId());
+		BookingDto booking = rideBookingServiceClient.getBooking(request.getBookingId(), authHeader);
 		if (booking == null) {
 			throw new EntityNotFoundException("Booking not found");
 		}
@@ -52,7 +52,7 @@ public class ReviewService {
 		}
 
 		// Check for duplicate review
-		if (reviewRepository.existsByBookingId(request.getBookingId())) {
+		if (reviewRepository.existsByBookingIdAndDeletedFalse(request.getBookingId())) {
 			throw new IllegalArgumentException("Review already exists for this booking");
 		}
 

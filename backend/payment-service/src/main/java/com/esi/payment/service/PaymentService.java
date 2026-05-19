@@ -88,6 +88,7 @@ public class PaymentService {
             throw new InvalidStateTransitionException(e.getMessage());
         }
         Payment saved = paymentRepository.save(payment);
+        paymentEventPublisher.publishPaymentRefunded(saved);
         return toRefundResponse(saved.getRefund());
     }
 

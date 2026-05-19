@@ -36,7 +36,7 @@ public class ReviewService {
 		}
 
 		// Fetch booking from ride-booking-service
-		BookingDto booking = rideBookingServiceClient.getBooking(request.getBookingId());
+		BookingDto booking = rideBookingServiceClient.getBooking(request.getBookingId(), authHeader);
 		if (booking == null) {
 			throw new EntityNotFoundException("Booking not found");
 		}
